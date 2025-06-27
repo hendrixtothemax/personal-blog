@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"io"
+	"bytes"
+    "github.com/yuin/goldmark"
 )
 
 func main() {
@@ -18,6 +20,9 @@ func main() {
 
 	wrapped = http.HandlerFunc(htmxHandler)
 	http.Handle("/js/htmx.js", LoggingMiddleware(wrapped))
+
+	wrapped = http.HandlerFunc(testMDHandler)
+	http.Handle("/testmd", LoggingMiddleware(wrapped))
 
 	fmt.Println("Server Starting! localhost:8080/")
 	http.ListenAndServe("0.0.0.0:8080", nil)
@@ -85,4 +90,29 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
     }
 
 	w.Write(data)
+}
+
+func testMDHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8") // use "text/html" not "image/png"
+
+	file, err := os.Open("./test.md")
+	if err != nil {
+		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+		return
+	}
+
+	var buf bytes.Buffer
+	if err := goldmark.Convert(data, &buf); err != nil {
+		http.Error(w, "Failed to render markdown", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(buf.Bytes())
 }
