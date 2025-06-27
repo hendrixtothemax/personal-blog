@@ -1,0 +1,14 @@
+:root{
+  font-family: 'Hack Nerd Font Mono', monospace;
+}
+
+pre, code {
+    font-family: 'Mononoki Nerd Font Mono', monospace;
+}
+
+pre {
+  border-color: red;
+  border-width: 10px;
+  border-radius: 30px;
+  padding: 30px;
+}

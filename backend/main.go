@@ -25,6 +25,9 @@ func main() {
 	wrapped = http.HandlerFunc(htmxHandler)
 	http.Handle("/js/htmx.js", LoggingMiddleware(wrapped))
 
+	wrapped = http.HandlerFunc(cssHandler)
+	http.Handle("/css/index.css", LoggingMiddleware(wrapped))
+
 	wrapped = http.HandlerFunc(testMDHandler)
 	http.Handle("/testmd", LoggingMiddleware(wrapped))
 
@@ -62,6 +65,25 @@ func htmxHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "text/javascript; charset=utf-8")
 
 	file, err := os.Open("./htmx.min.js")
+	if err != nil {
+		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+    if err != nil {
+        http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+		return
+    }
+
+	w.Write(data)
+}
+
+func cssHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "text/css; charset=utf-8")
+
+	file, err := os.Open("./index.css")
 	if err != nil {
 		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
 		return
