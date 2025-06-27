@@ -9,6 +9,11 @@ This is a *markdown* file **to** test if we can go from markdown to html
 ```Python
 def hello_world():
     print('hello world!')
+
+hello = "Hello World!"
+
+def the_funct(self, a: str, b: float):
+	print(hello)
 ```
 
 1. First Thing

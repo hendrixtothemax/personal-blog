@@ -7,6 +7,10 @@ import (
 	"io"
 	"bytes"
     "github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/renderer/html"
+	highlighting "github.com/yuin/goldmark-highlighting/v2"
+	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
 )
 
 func main() {
@@ -93,7 +97,7 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func testMDHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8") // use "text/html" not "image/png"
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	file, err := os.Open("./test.md")
 	if err != nil {
@@ -109,10 +113,31 @@ func testMDHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var buf bytes.Buffer
-	if err := goldmark.Convert(data, &buf); err != nil {
+
+	md := goldmark.New(
+		goldmark.WithExtensions(
+			extension.GFM,
+			highlighting.NewHighlighting(
+				highlighting.WithStyle("nord"),
+				highlighting.WithGuessLanguage(true),
+				highlighting.WithFormatOptions(
+					chromahtml.WithClasses(false), // ✅ Use inline styles
+				),
+			),
+		),
+		goldmark.WithRendererOptions(
+			html.WithHardWraps(),
+			html.WithXHTML(),
+			html.WithUnsafe(),
+		),
+	)
+
+	if err := md.Convert(data, &buf); err != nil {
 		http.Error(w, "Failed to render markdown", http.StatusInternalServerError)
 		return
 	}
 
 	w.Write(buf.Bytes())
 }
+
+
