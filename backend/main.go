@@ -102,7 +102,7 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "image/png; charset=utf-8")
 
-	file, err := os.Open("./favicon.png")
+	file, err := os.Open("./favicon-blue-x64.png")
 	if err != nil {
 		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
 		return
@@ -143,7 +143,7 @@ func testMDHandler(w http.ResponseWriter, r *http.Request) {
 				highlighting.WithStyle("nord"),
 				highlighting.WithGuessLanguage(true),
 				highlighting.WithFormatOptions(
-					chromahtml.WithClasses(false), // ✅ Use inline styles
+					chromahtml.WithClasses(false),
 				),
 			),
 		),

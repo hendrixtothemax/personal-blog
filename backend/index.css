@@ -1,5 +1,13 @@
+/*https://coolors.co/e63946-f1faee-a8dadc-457b9d-1d3557*/
+
 :root{
   font-family: 'Hack Nerd Font Mono', monospace;
+}
+
+body{
+  background-color: #F1FAEE;
+  padding: 0px;
+  margin: 0px;
 }
 
 pre, code {
@@ -11,4 +19,50 @@ pre {
   border-width: 10px;
   border-radius: 30px;
   padding: 30px;
+}
+
+.navbar{
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #A8DADC;
+    padding: 1rem;
+    color: #F1FAEE;
+    border-bottom: solid 0.25rem #1D3557;
+}
+
+.navsection{
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    gap: 1rem;
+}
+
+.navbar-element{
+  display: flex;
+  /*padding: 0.75rem;*/
+  background-color: #1D3557;
+  /*border: 0.175rem black solid;*/
+  border-radius: 0.75rem;
+  transition: background-color 0.3s ease-out;
+}
+
+.navbar-element:hover{
+  transition: background-color 0.3s ease-out;
+  background-color: #457B9D;
+}
+
+.navbar-element a {
+    display: flex;        /* Stretch to fill container */
+    align-items: center;  /* Center text vertically */
+    justify-content: center; /* Optional: center horizontally */
+    padding: 0.75rem 1rem;  /* Controls the click area */
+    text-decoration: none;
+    color: inherit;
+}
+
+#content-body{
+  padding: 1.25rem;
 }

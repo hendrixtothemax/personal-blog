@@ -1,0 +1,11 @@
+.navbar{
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+}
+
+.navsection{
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+}
