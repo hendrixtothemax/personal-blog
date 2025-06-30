@@ -51,7 +51,7 @@ pre {
 
 .navbar-element:hover{
   transition: background-color 0.3s ease-out;
-  background-color: #457B9D;
+  background-color: #305890;
 }
 
 .navbar-element a {
@@ -65,4 +65,86 @@ pre {
 
 #content-body{
   padding: 1.25rem;
+  display: flex;
+  justify-content: center;
+}
+
+#scroll{
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+
+  /* margin-left: 10rem; */
+  /* margin-right: 10rem; */
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+
+  min-width: 38rem;
+
+  background-color: #457B9D;
+  border: solid 0.25rem #1D3557;
+
+  color: whitesmoke;
+}
+
+#login-box{
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+
+  /* margin-left: 10rem; */
+  /* margin-right: 10rem; */
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+
+  min-width: fit-content;
+
+  background-color: #457B9D;
+  border: solid 0.25rem #1D3557;
+  border-radius: 1.5rem;
+
+  color: whitesmoke;
+}
+
+#login-box h1{
+  max-width: fit-content;
+  margin-top: 0rem;
+}
+
+.login-group{
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  max-width: fit-content;
+}
+
+.login-col{
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: fit-content;
+}
+
+.submit-btn{
+  color: whitesmoke;
+  font-size: medium;
+  background-color: #1D3557;
+  /*border: 0.175rem black solid;*/
+  border-radius: 0.75rem;
+  max-width: fit-content;
+  padding: 0.75rem;
+  transition: background-color 0.3s ease-out;
+  border: 0.15rem solid whitesmoke;
+}
+
+.submit-btn:hover{
+  transition: background-color 0.3s ease-out;
+  background-color: #305890;
+  cursor: pointer;
 }
