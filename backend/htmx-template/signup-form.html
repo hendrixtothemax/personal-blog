@@ -1,0 +1,21 @@
+<form id="login-box" hx-swap="outterHTML" hx-post="/user/register">
+    <h1>Sign-Up</h1>
+    <div class="login-group">
+        <div class="login-col">
+            <label for="email">Email: </label>
+            <label for="password">Password: </label>
+        </div>
+        <div class="login-col">
+            <input type="email" name="email" id="email" required />
+            <input type="password" name="password" id="password" required />
+            <input class="submit-btn" type="submit" value="Register" />
+        </div>
+    </div>
+    <div>
+        <span>Don't Have An Account?</span>
+        <button type="button" class="submit-btn" hx-target="closest form"
+        hx-swap="outerHTML" hx-get="/htmx/login-form">
+            Login
+        </button>
+    </div>
+</form>

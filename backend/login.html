@@ -15,19 +15,7 @@
         </span>
     </nav>
     <div id="content-body">
-        <form id="login-box">
-            <h1>Login</h1>
-            <div class="login-group">
-                <div class="login-col">
-                    <label for="email">Email: </label>
-                    <label for="password">Password: </label>
-                </div>
-                <div class="login-col">
-                    <input type="email" name="email" id="email" required />
-                    <input type="password" name="password" id="password" required />
-                    <input class="submit-btn" type="submit" value="Login" />
-                </div>
-            </div>
-        </form>
+        <div id="form-container" hx-trigger="load" hx-get="/htmx/login-form">
+        </div>
     </div>
 </body>

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"os"
 	"io"
@@ -14,33 +15,29 @@ import (
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
+	"html/template"
 )
 
 func main() {
-	http.Handle("/foo", http.HandlerFunc(fooHandler))
+	r := mux.NewRouter()
 
-	wrapped := http.HandlerFunc(indexHandler)
-	http.Handle("/", LoggingMiddleware(wrapped))
+	// Use r.HandleFunc instead of http.Handle
+	r.Handle("/foo", LoggingMiddleware(http.HandlerFunc(fooHandler)))
+	r.Handle("/", LoggingMiddleware(http.HandlerFunc(indexHandler)))
+	r.Handle("/login", LoggingMiddleware(http.HandlerFunc(loginHandler)))
+	r.Handle("/favicon.ico", LoggingMiddleware(http.HandlerFunc(faviconHandler)))
+	r.Handle("/js/htmx.js", LoggingMiddleware(http.HandlerFunc(htmxHandler)))
+	r.Handle("/css/index.css", LoggingMiddleware(http.HandlerFunc(cssHandler)))
+	r.Handle("/testmd", LoggingMiddleware(http.HandlerFunc(testMDHandler)))
+	r.Handle("/user/create", LoggingMiddleware(http.HandlerFunc(createUser)))
 
-	wrapped = http.HandlerFunc(loginHandler)
-	http.Handle("/login", LoggingMiddleware(wrapped))
-
-	wrapped = http.HandlerFunc(faviconHandler)
-	http.Handle("/favicon.ico", LoggingMiddleware(wrapped))
-
-	wrapped = http.HandlerFunc(htmxHandler)
-	http.Handle("/js/htmx.js", LoggingMiddleware(wrapped))
-
-	wrapped = http.HandlerFunc(cssHandler)
-	http.Handle("/css/index.css", LoggingMiddleware(wrapped))
-
-	wrapped = http.HandlerFunc(testMDHandler)
-	http.Handle("/testmd", LoggingMiddleware(wrapped))
+	// Use path variable!
+	r.Handle("/htmx/{filename}", LoggingMiddleware(http.HandlerFunc(htmxTemplateHandler)))
 
 	startDB()
 
 	fmt.Println("Server Starting! localhost:8080/")
-	http.ListenAndServe("0.0.0.0:8080", nil)
+	log.Fatal(http.ListenAndServe("0.0.0.0:8080", r))  // Pass your mux.Router
 }
 
 func startDB(){
@@ -55,9 +52,22 @@ func startDB(){
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
+		salt TEXT NOT NULL,
 		created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
 		updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
 		last_login TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    );
+	`
+
+	createSessionTable := `
+	PRAGMA foreign_keys = ON;
+
+	CREATE TABLE IF NOT EXISTS sessions (
+        session_id TEXT NOT NULL UNIQUE,
+		user_id INTEGER NOT NULL,
+		created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+		last_use TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+		FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
     );
 	`
 
@@ -74,6 +84,11 @@ func startDB(){
 	`
 
 	_, err = db.Exec(createTable)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = db.Exec(createSessionTable)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -232,4 +247,38 @@ func testMDHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf.Bytes())
 }
 
+func createUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Cache-Control", "no-cache")
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
 
+	if r.Method != http.MethodPost {
+		http.Error(w, "Mehtod Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+
+}
+
+func htmxTemplateHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Cache-Control", "no-cache")
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
+
+	vars := mux.Vars(r)
+	filename := vars["filename"]
+	path := fmt.Sprintf("./htmx-template/%s.html", filename)
+
+	file, err := os.Open(path)
+	if err != nil {
+		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+    if err != nil {
+        http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+		return
+    }
+
+	w.Write(data)
+}
