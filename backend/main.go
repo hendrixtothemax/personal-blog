@@ -16,6 +16,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"golang.org/x/crypto/bcrypt"
+	"crypto/rand"
+	"encoding/base64"
 )
 
 func main() {
@@ -284,15 +286,61 @@ func registerUser(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-        // Example insertion (don't forget password hashing and error handling):
-        _, err = db.Exec("INSERT INTO users (email, password) VALUES (?, ?)", email, hash)
+        result, err := db.Exec("INSERT INTO users (email, password) VALUES (?, ?)", email, hash)
         if err != nil {
             http.Error(w, "Database error", http.StatusInternalServerError)
             return
         }
 
+		user_id, err := result.LastInsertId()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("New user ID:", user_id)
+
+		session_id, err := generateSession(db, user_id); 
+		
+		if err != nil {
+			http.Error(w, "Failed to create session", http.StatusInternalServerError)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_id",
+			Value:    session_id,
+			HttpOnly: true,
+			Secure:   false, // only if using HTTPS
+			Path:     "/",
+			SameSite: http.SameSiteStrictMode,
+		})
+
+
         w.Write([]byte("Success"))
     }
+}
+
+func generateSession(db *sql.DB, userid int64) (string, error) {
+	session_id, err := generateSessionID()
+	if err != nil {
+		return "", err
+	}
+
+	_, err = db.Exec("INSERT INTO sessions (session_id, user_id) VALUES (?, ?)", session_id, userid)
+	if err != nil {
+		return "", err
+	}
+
+	return session_id, nil
+}
+
+
+func generateSessionID() (string, error) {
+	b := make([]byte, 32) // 256-bit token
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(b), nil
 }
 
 func emailExists(db *sql.DB, email string) (bool, error) {
