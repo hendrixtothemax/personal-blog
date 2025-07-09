@@ -10,4 +10,5 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.28 // indirect
 	github.com/yuin/goldmark v1.7.12 // indirect
 	github.com/yuin/goldmark-highlighting/v2 v2.0.0-20230729083705-37449abec8cc // indirect
+	golang.org/x/crypto v0.39.0 // indirect
 )

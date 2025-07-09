@@ -15,11 +15,13 @@ import (
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
-	"html/template"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
 	r := mux.NewRouter()
+
+	db := startDB()
 
 	// Use r.HandleFunc instead of http.Handle
 	r.Handle("/foo", LoggingMiddleware(http.HandlerFunc(fooHandler)))
@@ -29,30 +31,26 @@ func main() {
 	r.Handle("/js/htmx.js", LoggingMiddleware(http.HandlerFunc(htmxHandler)))
 	r.Handle("/css/index.css", LoggingMiddleware(http.HandlerFunc(cssHandler)))
 	r.Handle("/testmd", LoggingMiddleware(http.HandlerFunc(testMDHandler)))
-	r.Handle("/user/create", LoggingMiddleware(http.HandlerFunc(createUser)))
+	r.Handle("/user/register", LoggingMiddleware(http.HandlerFunc(registerUser(db))))
 
 	// Use path variable!
 	r.Handle("/htmx/{filename}", LoggingMiddleware(http.HandlerFunc(htmxTemplateHandler)))
-
-	startDB()
 
 	fmt.Println("Server Starting! localhost:8080/")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", r))  // Pass your mux.Router
 }
 
-func startDB(){
+func startDB() *sql.DB{
 	db, err := sql.Open("sqlite3", "./main.db")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
 
 	createTable := `
 	CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
-		salt TEXT NOT NULL,
 		created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
 		updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
 		last_login TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
@@ -98,6 +96,7 @@ func startDB(){
 		log.Fatal(err)
 	}
 
+	return db
 }
 
 func fooHandler(w http.ResponseWriter, r *http.Request) {
@@ -247,17 +246,65 @@ func testMDHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf.Bytes())
 }
 
-func createUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Cache-Control", "no-cache")
-	w.Header().Add("Content-Type", "text/html; charset=utf-8")
+func registerUser(db *sql.DB) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Add("Cache-Control", "no-cache")
+        w.Header().Add("Content-Type", "text/html; charset=utf-8")
 
-	if r.Method != http.MethodPost {
-		http.Error(w, "Mehtod Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
+        if r.Method != http.MethodPost {
+            http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+            return
+        }
 
+        if err := r.ParseForm(); err != nil {
+            http.Error(w, "Unable to parse form", http.StatusBadRequest)
+            return
+        }
 
+        email := r.FormValue("email")
+        password := r.FormValue("password")
+
+        fmt.Println("email:", email, "| password:", password)
+
+        // Here, you can use db to run queries, e.g. insert user
+		exists, err := emailExists(db, email)
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+		if exists {
+			http.Error(w, "Email already registered", http.StatusConflict)
+			return
+		}
+
+		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+		if err != nil{
+			http.Error(w, "Hashing Error", http.StatusInternalServerError)
+			return
+		}
+
+        // Example insertion (don't forget password hashing and error handling):
+        _, err = db.Exec("INSERT INTO users (email, password) VALUES (?, ?)", email, hash)
+        if err != nil {
+            http.Error(w, "Database error", http.StatusInternalServerError)
+            return
+        }
+
+        w.Write([]byte("Success"))
+    }
 }
+
+func emailExists(db *sql.DB, email string) (bool, error) {
+    var count int
+    err := db.QueryRow("SELECT COUNT(1) FROM users WHERE email = ?", email).Scan(&count)
+    if err != nil {
+        return false, err
+    }
+    return count > 0, nil
+}
+
+
 
 func htmxTemplateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Cache-Control", "no-cache")
