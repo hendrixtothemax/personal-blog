@@ -29,6 +29,7 @@ func main() {
 	// r.Handle("/", LoggingMiddleware(http.HandlerFunc(indexHandler)))
 	r.Handle("/", ChainMiddleware(indexHandler(db), LoggingMiddleware))
 	r.Handle("/login", LoggingMiddleware(http.HandlerFunc(loginHandler)))
+	r.Handle("/logout", ChainMiddleware(logoutHandler(db), LoggingMiddleware))
 	r.Handle("/favicon.ico", LoggingMiddleware(http.HandlerFunc(faviconHandler)))
 	r.Handle("/js/htmx.js", LoggingMiddleware(http.HandlerFunc(htmxHandler)))
 	r.Handle("/css/index.css", LoggingMiddleware(http.HandlerFunc(cssHandler)))
@@ -95,7 +96,7 @@ func fooHandler(w http.ResponseWriter, r *http.Request) {
 func indexHandler(db *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Set headers
-		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Cache-Control", "must-revalidate")
 		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 
 		// Get user info if authenticated
@@ -144,6 +145,31 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(data)
+}
+
+func logoutHandler(db *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, session_id, err := hasSession(r, db)
+
+		if err != nil {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+
+		db.Exec("DELETE FROM sessions WHERE session_id = ?", session_id)
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_id",
+			Value:    "",
+			HttpOnly: true,
+			Secure:   false, // only if using HTTPS
+			Path:     "/",
+			SameSite: http.SameSiteLaxMode,
+			MaxAge:   -1,
+		})
+
+		http.Redirect(w, r, "/", http.StatusFound)
+	})
 }
 
 func htmxHandler(w http.ResponseWriter, r *http.Request) {

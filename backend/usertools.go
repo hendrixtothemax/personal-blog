@@ -17,7 +17,7 @@ type TemplateData struct {
 }
 
 func getUserFromSession(r *http.Request, db *sql.DB) (*User, error) {
-	userID, err := hasSession(r, db)
+	userID, _, err := hasSession(r, db)
 	if err != nil {
 		return nil, err
 	}
@@ -37,10 +37,10 @@ func getUserFromSession(r *http.Request, db *sql.DB) (*User, error) {
 	return &user, nil
 }
 
-func hasSession(r *http.Request, db *sql.DB) (int, error) {
+func hasSession(r *http.Request, db *sql.DB) (int, string, error) {
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
-		return 0, fmt.Errorf("no session cookie")
+		return -1, "", fmt.Errorf("no session cookie")
 	}
 
 	var userID int
@@ -51,8 +51,8 @@ func hasSession(r *http.Request, db *sql.DB) (int, error) {
 	).Scan(&userID)
 
 	if err != nil {
-		return 0, fmt.Errorf("invalid or expired session")
+		return 0, "", fmt.Errorf("invalid or expired session")
 	}
 
-	return userID, nil
+	return userID, cookie.Value, nil
 }

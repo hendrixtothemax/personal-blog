@@ -186,7 +186,7 @@ func loginUser(db *sql.DB) http.HandlerFunc {
 			SameSite: http.SameSiteLaxMode,
 		})
 
-		w.Header().Set("HX-Redirect", "/testmd")
+		w.Header().Set("HX-Redirect", "/")
 	}
 }
 
