@@ -99,7 +99,11 @@ func indexHandler(db *sql.DB) http.Handler {
 		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 
 		// Get user info if authenticated
-		user, _ := getUserFromSession(r, db) // Ignore error if anonymous
+		user, err0 := getUserFromSession(r, db) // Ignore error if anonymous
+
+		if err0 != nil {
+			fmt.Printf("Error Getting User: %s \n", err0)
+		}
 
 		data := TemplateData{
 			IsAuthenticated: user != nil,

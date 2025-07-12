@@ -5,7 +5,6 @@
     </span>
     <span class="navbar-element" style="margin-left: auto;">
         {{if .IsAuthenticated}}
-            <span class="navbar-element">Welcome, {{.User.Name}}</span>
             <span class="navbar-element"><a href="/logout">Logout</a></span>
         {{else}}
             <span class="navbar-element"><a href="/login">Login</a></span>

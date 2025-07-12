@@ -9,7 +9,6 @@ import (
 type User struct {
 	ID    int
 	Email string
-	Name  string
 }
 
 type TemplateData struct {
@@ -23,14 +22,16 @@ func getUserFromSession(r *http.Request, db *sql.DB) (*User, error) {
 		return nil, err
 	}
 
+	fmt.Printf("User ID: %d\n", userID)
+
 	var user User
 	err = db.QueryRow(
-		"SELECT user_id, email, name FROM users WHERE user_id = ?",
+		"SELECT user_id, email FROM users WHERE user_id = ?",
 		userID,
-	).Scan(&user.ID, &user.Email, &user.Name)
+	).Scan(&user.ID, &user.Email)
 
 	if err != nil {
-		return nil, fmt.Errorf("user not found")
+		return nil, fmt.Errorf("user not found: %s", err)
 	}
 
 	return &user, nil
