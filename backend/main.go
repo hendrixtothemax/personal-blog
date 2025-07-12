@@ -352,8 +352,6 @@ func emailExists(db *sql.DB, email string) (bool, error) {
     return count > 0, nil
 }
 
-
-
 func htmxTemplateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Cache-Control", "no-cache")
 	w.Header().Add("Content-Type", "text/html; charset=utf-8")
