@@ -1,24 +1,25 @@
 package main
 
 import (
+	"bytes"
+	"crypto/rand"
+	"database/sql"
+	"encoding/base64"
 	"fmt"
-	"github.com/gorilla/mux"
+	"io"
+	"log"
 	"net/http"
 	"os"
-	"io"
-	"bytes"
-    "github.com/yuin/goldmark"
+	"strings"
+
+	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
+	"github.com/gorilla/mux"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/yuin/goldmark"
+	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/renderer/html"
-	highlighting "github.com/yuin/goldmark-highlighting/v2"
-	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
-	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
-	"log"
 	"golang.org/x/crypto/bcrypt"
-	"crypto/rand"
-	"encoding/base64"
-	"strings"
 )
 
 func main() {
@@ -41,10 +42,10 @@ func main() {
 	r.Handle("/htmx/{filename}", LoggingMiddleware(http.HandlerFunc(htmxTemplateHandler)))
 
 	fmt.Println("Server Starting! localhost:8080/")
-	log.Fatal(http.ListenAndServe("0.0.0.0:8080", r))  // Pass your mux.Router
+	log.Fatal(http.ListenAndServe("0.0.0.0:8080", r)) // Pass your mux.Router
 }
 
-func startDB() *sql.DB{
+func startDB() *sql.DB {
 	db, err := sql.Open("sqlite3", "./main.db")
 	if err != nil {
 		log.Fatal(err)
@@ -65,24 +66,13 @@ func startDB() *sql.DB{
 	PRAGMA foreign_keys = ON;
 
 	CREATE TABLE IF NOT EXISTS sessions (
-        session_id TEXT NOT NULL UNIQUE,
+		session_id TEXT NOT NULL UNIQUE,
 		user_id INTEGER NOT NULL,
 		created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
 		last_use TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+		end_time TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now', '+24 hours')),
 		FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-    );
-	`
-
-	createTrigger := `
-	CREATE TRIGGER IF NOT EXISTS trigger_update_users_updated_at
-	AFTER UPDATE ON users
-	FOR EACH ROW
-	WHEN OLD.email != NEW.email OR OLD.password != NEW.password
-	BEGIN
-		UPDATE users
-		SET updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
-		WHERE id = OLD.id;
-	END;
+	);
 	`
 
 	_, err = db.Exec(createTable)
@@ -91,11 +81,6 @@ func startDB() *sql.DB{
 	}
 
 	_, err = db.Exec(createSessionTable)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = db.Exec(createTrigger)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -121,10 +106,10 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	data, err := io.ReadAll(file)
-    if err != nil {
-        http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+	if err != nil {
+		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
 		return
-    }
+	}
 
 	w.Write(data)
 }
@@ -141,10 +126,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	data, err := io.ReadAll(file)
-    if err != nil {
-        http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+	if err != nil {
+		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
 		return
-    }
+	}
 
 	w.Write(data)
 }
@@ -160,10 +145,10 @@ func htmxHandler(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	data, err := io.ReadAll(file)
-    if err != nil {
-        http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+	if err != nil {
+		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
 		return
-    }
+	}
 
 	w.Write(data)
 }
@@ -179,10 +164,10 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	data, err := io.ReadAll(file)
-    if err != nil {
-        http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+	if err != nil {
+		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
 		return
-    }
+	}
 
 	w.Write(data)
 }
@@ -198,10 +183,10 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	data, err := io.ReadAll(file)
-    if err != nil {
-        http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+	if err != nil {
+		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
 		return
-    }
+	}
 
 	w.Write(data)
 }
@@ -251,26 +236,26 @@ func testMDHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func registerUser(db *sql.DB) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Add("Cache-Control", "no-cache")
-        w.Header().Add("Content-Type", "text/html; charset=utf-8")
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 
-        if r.Method != http.MethodPost {
-            http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-            return
-        }
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
-        if err := r.ParseForm(); err != nil {
-            http.Error(w, "Unable to parse form", http.StatusBadRequest)
-            return
-        }
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Unable to parse form", http.StatusBadRequest)
+			return
+		}
 
-        email := r.FormValue("email")
-        password := r.FormValue("password")
+		email := r.FormValue("email")
+		password := r.FormValue("password")
 
-        fmt.Println("email:", email, "| password:", password)
+		fmt.Println("email:", email, "| password:", password)
 
-        // Here, you can use db to run queries, e.g. insert user
+		// Here, you can use db to run queries, e.g. insert user
 		exists, err := emailExists(db, email)
 		if err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
@@ -285,16 +270,16 @@ func registerUser(db *sql.DB) http.HandlerFunc {
 
 		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
-		if err != nil{
+		if err != nil {
 			http.Error(w, "Hashing Error", http.StatusInternalServerError)
 			return
 		}
 
-        result, err := db.Exec("INSERT INTO users (email, password) VALUES (?, ?)", email, hash)
-        if err != nil {
-            http.Error(w, "Database error", http.StatusInternalServerError)
-            return
-        }
+		result, err := db.Exec("INSERT INTO users (email, password) VALUES (?, ?)", email, hash)
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
 
 		user_id, err := result.LastInsertId()
 		if err != nil {
@@ -302,8 +287,8 @@ func registerUser(db *sql.DB) http.HandlerFunc {
 		}
 		fmt.Println("New user ID:", user_id)
 
-		session_id, err := generateSession(db, user_id); 
-		
+		session_id, err := generateSession(db, user_id)
+
 		if err != nil {
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
@@ -318,9 +303,8 @@ func registerUser(db *sql.DB) http.HandlerFunc {
 			SameSite: http.SameSiteStrictMode,
 		})
 
-
-        w.Write([]byte("Success"))
-    }
+		w.Write([]byte("Success"))
+	}
 }
 
 func generateSession(db *sql.DB, userid int64) (string, error) {
@@ -329,14 +313,14 @@ func generateSession(db *sql.DB, userid int64) (string, error) {
 		return "", err
 	}
 
-	_, err = db.Exec("INSERT INTO sessions (session_id, user_id) VALUES (?, ?)", session_id, userid)
+	//strftime('%Y-%m-%dT%H:%M:%SZ', 'now', '+24 hours'
+	_, err = db.Exec("INSERT INTO sessions (session_id, user_id, end_time) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%SZ', 'now', '+48 hours'))", session_id, userid)
 	if err != nil {
 		return "", err
 	}
 
 	return session_id, nil
 }
-
 
 func generateSessionID() (string, error) {
 	b := make([]byte, 32) // 256-bit token
@@ -350,24 +334,24 @@ func generateSessionID() (string, error) {
 func loginUser(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "no-cache")
-        w.Header().Add("Content-Type", "text/html; charset=utf-8")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 
-        if r.Method != http.MethodPost {
-            http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-            return
-        }
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
-        if err := r.ParseForm(); err != nil {
-            http.Error(w, "Unable to parse form", http.StatusBadRequest)
-            return
-        }
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Unable to parse form", http.StatusBadRequest)
+			return
+		}
 
-        email := r.FormValue("email")
-        password := r.FormValue("password")
+		email := r.FormValue("email")
+		password := r.FormValue("password")
 
-        fmt.Println("email:", email, "| password:", password)
+		fmt.Println("email:", email, "| password:", password)
 
-        // Here, you can use db to run queries, e.g. insert user
+		// Here, you can use db to run queries, e.g. insert user
 		exists, err := emailExists(db, email)
 		if err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
@@ -379,9 +363,9 @@ func loginUser(db *sql.DB) http.HandlerFunc {
 		}
 
 		var hashedPassword string
-		var user_id int64
+		var user_id_db int64
 
-		err = db.QueryRow("SELECT password, user_id FROM users WHERE email = ? LIMIT 1", email).Scan(&hashedPassword, &user_id)
+		err = db.QueryRow("SELECT password, user_id FROM users WHERE email = ? LIMIT 1", email).Scan(&hashedPassword, &user_id_db)
 
 		if err == sql.ErrNoRows {
 			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
@@ -404,23 +388,16 @@ func loginUser(db *sql.DB) http.HandlerFunc {
 		}
 
 		log.Println("Password is correct")
-		session_id, err := generateSession(db, user_id)
+		session_id, err := generateSession(db, user_id_db)
 
 		if err != nil {
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
 		}
 
-		res, err2 := db.Exec("UPDATE users SET (last_login = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')) WHERE user_id = ?", user_id)
+		_, err2 := db.Exec("UPDATE users SET last_login = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE user_id = ?", user_id_db)
 		if err2 != nil {
-			log.Printf("Failed to update last_login: %v", err2)
-		} else {
-			rowsAffected, err2 := res.RowsAffected()
-			if err2 != nil {
-				log.Printf("Error checking rows affected: %v", err2)
-			} else {
-				log.Printf("last_login update successful; rows affected: %d", rowsAffected)
-			}
+			log.Printf("Failed to update last_login: %v\n", err2)
 		}
 
 		http.SetCookie(w, &http.Cookie{
@@ -432,17 +409,17 @@ func loginUser(db *sql.DB) http.HandlerFunc {
 			SameSite: http.SameSiteStrictMode,
 		})
 
-        w.Write([]byte("Success"))
+		w.Write([]byte("Success"))
 	}
 }
 
 func emailExists(db *sql.DB, email string) (bool, error) {
-    var count int
-    err := db.QueryRow("SELECT COUNT(1) FROM users WHERE email = ?", email).Scan(&count)
-    if err != nil {
-        return false, err
-    }
-    return count > 0, nil
+	var count int
+	err := db.QueryRow("SELECT COUNT(1) FROM users WHERE email = ?", email).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 func htmxTemplateHandler(w http.ResponseWriter, r *http.Request) {
@@ -461,10 +438,10 @@ func htmxTemplateHandler(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	data, err := io.ReadAll(file)
-    if err != nil {
-        http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+	if err != nil {
+		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
 		return
-    }
+	}
 
 	w.Write(data)
 }
