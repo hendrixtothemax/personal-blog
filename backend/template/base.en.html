@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>{{block "title" .}}{{end}}</title>
+        <script src="/js/htmx.js"></script>
+        <link rel="stylesheet" href="/css/index.css">
+    </head>
+    <body>
+        {{template "navbar.en.html" .}}
+        <main id="content-body">
+            {{block "content" .}}{{end}}
+        </main>
+    </body>
+</html>

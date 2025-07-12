@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -26,7 +27,7 @@ func main() {
 	// Use r.HandleFunc instead of http.Handle
 	r.Handle("/foo", LoggingMiddleware(http.HandlerFunc(fooHandler)))
 	// r.Handle("/", LoggingMiddleware(http.HandlerFunc(indexHandler)))
-	r.Handle("/", ChainMiddleware(indexHandler(), LoggingMiddleware))
+	r.Handle("/", ChainMiddleware(indexHandler(db), LoggingMiddleware))
 	r.Handle("/login", LoggingMiddleware(http.HandlerFunc(loginHandler)))
 	r.Handle("/favicon.ico", LoggingMiddleware(http.HandlerFunc(faviconHandler)))
 	r.Handle("/js/htmx.js", LoggingMiddleware(http.HandlerFunc(htmxHandler)))
@@ -91,25 +92,33 @@ func fooHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Foo"))
 }
 
-func indexHandler() http.Handler {
+func indexHandler(db *sql.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set headers
 		w.Header().Add("Cache-Control", "no-cache")
 		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 
-		file, err := os.Open("./index.html")
-		if err != nil {
-			http.Error(w, "Something went wrong!", http.StatusInternalServerError)
-			return
-		}
-		defer file.Close()
+		// Get user info if authenticated
+		user, _ := getUserFromSession(r, db) // Ignore error if anonymous
 
-		data, err := io.ReadAll(file)
-		if err != nil {
-			http.Error(w, "Something went wrong!", http.StatusInternalServerError)
-			return
+		data := TemplateData{
+			IsAuthenticated: user != nil,
+			User:            user,
 		}
 
-		w.Write(data)
+		// Parse all needed templates
+		tmpl := template.Must(template.ParseFiles(
+			"template/base.en.html",   // defines "base"
+			"template/navbar.en.html", // partial navbar
+			"template/index.en.html",  // overrides blocks in base
+		))
+
+		// Execute the base template which uses blocks from index.en.html
+		err := tmpl.ExecuteTemplate(w, "base.en.html", data)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Template render error: %v", err), http.StatusInternalServerError)
+			return
+		}
 	})
 }
 

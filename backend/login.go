@@ -80,7 +80,7 @@ func registerUser(db *sql.DB) http.HandlerFunc {
 			SameSite: http.SameSiteStrictMode,
 		})
 
-		w.Header().Set("HX-Redirect", "/testmd")
+		w.Header().Set("HX-Redirect", "/")
 	}
 }
 
@@ -183,7 +183,7 @@ func loginUser(db *sql.DB) http.HandlerFunc {
 			HttpOnly: true,
 			Secure:   false, // only if using HTTPS
 			Path:     "/",
-			SameSite: http.SameSiteStrictMode,
+			SameSite: http.SameSiteLaxMode,
 		})
 
 		w.Header().Set("HX-Redirect", "/testmd")
