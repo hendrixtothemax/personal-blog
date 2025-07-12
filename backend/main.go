@@ -26,7 +26,7 @@ func main() {
 	// Use r.HandleFunc instead of http.Handle
 	r.Handle("/foo", LoggingMiddleware(http.HandlerFunc(fooHandler)))
 	// r.Handle("/", LoggingMiddleware(http.HandlerFunc(indexHandler)))
-	r.Handle("/", ChainMiddleware(http.HandlerFunc(indexHandler), LoggingMiddleware))
+	r.Handle("/", ChainMiddleware(indexHandler(), LoggingMiddleware))
 	r.Handle("/login", LoggingMiddleware(http.HandlerFunc(loginHandler)))
 	r.Handle("/favicon.ico", LoggingMiddleware(http.HandlerFunc(faviconHandler)))
 	r.Handle("/js/htmx.js", LoggingMiddleware(http.HandlerFunc(htmxHandler)))
@@ -91,24 +91,26 @@ func fooHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Foo"))
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Cache-Control", "no-cache")
-	w.Header().Add("Content-Type", "text/html; charset=utf-8")
+func indexHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 
-	file, err := os.Open("./index.html")
-	if err != nil {
-		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
-		return
-	}
-	defer file.Close()
+		file, err := os.Open("./index.html")
+		if err != nil {
+			http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
 
-	data, err := io.ReadAll(file)
-	if err != nil {
-		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
-		return
-	}
+		data, err := io.ReadAll(file)
+		if err != nil {
+			http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+			return
+		}
 
-	w.Write(data)
+		w.Write(data)
+	})
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
