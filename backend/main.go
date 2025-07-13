@@ -28,6 +28,7 @@ func main() {
 	r.Handle("/foo", LoggingMiddleware(http.HandlerFunc(fooHandler)))
 	// r.Handle("/", LoggingMiddleware(http.HandlerFunc(indexHandler)))
 	r.Handle("/", ChainMiddleware(indexHandler(db), LoggingMiddleware))
+	r.Handle("/blog", ChainMiddleware(blogHandler(db), LoggingMiddleware))
 	r.Handle("/login", LoggingMiddleware(http.HandlerFunc(loginHandler)))
 	r.Handle("/logout", ChainMiddleware(logoutHandler(db), LoggingMiddleware))
 	r.Handle("/favicon.ico", LoggingMiddleware(http.HandlerFunc(faviconHandler)))
@@ -42,49 +43,6 @@ func main() {
 
 	fmt.Println("Server Starting! localhost:8080/")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", r)) // Pass your mux.Router
-}
-
-func startDB() *sql.DB {
-	db, err := sql.Open("sqlite3", "./main.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	createTable := `
-	CREATE TABLE IF NOT EXISTS users (
-        user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL,
-		created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
-		updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
-		last_login TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
-    );
-	`
-
-	createSessionTable := `
-	PRAGMA foreign_keys = ON;
-
-	CREATE TABLE IF NOT EXISTS sessions (
-		session_id TEXT NOT NULL UNIQUE,
-		user_id INTEGER NOT NULL,
-		created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
-		last_use TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
-		end_time TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now', '+24 hours')),
-		FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-	);
-	`
-
-	_, err = db.Exec(createTable)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = db.Exec(createSessionTable)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return db
 }
 
 func fooHandler(w http.ResponseWriter, r *http.Request) {
@@ -116,6 +74,40 @@ func indexHandler(db *sql.DB) http.Handler {
 			"template/base.en.html",   // defines "base"
 			"template/navbar.en.html", // partial navbar
 			"template/index.en.html",  // overrides blocks in base
+		))
+
+		// Execute the base template which uses blocks from index.en.html
+		err := tmpl.ExecuteTemplate(w, "base.en.html", data)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Template render error: %v", err), http.StatusInternalServerError)
+			return
+		}
+	})
+}
+
+func blogHandler(db *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set headers
+		w.Header().Add("Cache-Control", "must-revalidate")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
+
+		// Get user info if authenticated
+		user, err0 := getUserFromSession(r, db) // Ignore error if anonymous
+
+		if err0 != nil {
+			fmt.Printf("Error Getting User: %s \n", err0)
+		}
+
+		data := TemplateData{
+			IsAuthenticated: user != nil,
+			User:            user,
+		}
+
+		// Parse all needed templates
+		tmpl := template.Must(template.ParseFiles(
+			"template/base.en.html",   // defines "base"
+			"template/navbar.en.html", // partial navbar
+			"template/blog.en.html",   // overrides blocks in base
 		))
 
 		// Execute the base template which uses blocks from index.en.html
