@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"os"
@@ -28,9 +29,12 @@ type TemplateData struct {
 }
 
 type Post struct {
+	ID      int
 	Title   string
 	Date    string
 	Summary string
+	Content template.HTML
+	FileLoc string
 	Topics  []string
 }
 
@@ -103,7 +107,7 @@ func getPosts(db *sql.DB) (*[]Post, error) {
 	numbRows := 0
 
 	for rows.Next() {
-		var post_id string
+		var post_id int
 		var title string
 		var summary string
 		var created_at string
@@ -125,13 +129,16 @@ func getPosts(db *sql.DB) (*[]Post, error) {
 			tagList = append(tagList, "None")
 		}
 
-		fmt.Printf("PID: %s | Title: %s | Created At: %s | File Loc: %s | Tag Numbs: %d\n", post_id, title, created_at, file_loc, len(tagList))
+		fmt.Printf("PID: %d | Title: %s | Created At: %s | File Loc: %s | Tag Numbs: %d\n", post_id, title, created_at, file_loc, len(tagList))
 
 		curPost := Post{
+			ID:      post_id,
 			Title:   title,
 			Summary: summary,
 			Date:    created_at,
+			FileLoc: file_loc,
 			Topics:  tagList,
+			Content: "",
 		}
 
 		posts = append(posts, curPost)
@@ -144,7 +151,63 @@ func getPosts(db *sql.DB) (*[]Post, error) {
 	return &posts, nil
 }
 
-func mdToHTML(path string) (string, error) {
+func getPost(db *sql.DB, postID int) (Post, error) {
+	var post_id int
+	var title string
+	var summary string
+	var created_at string
+	var file_loc string
+	var tags sql.NullString
+
+	err := db.QueryRow(
+		`
+		SELECT p.post_id, p.title, p.summary, p.created_at, p.file_loc, 
+			COALESCE(GROUP_CONCAT(t.tag_name), '') AS tags
+		FROM (
+			SELECT post_id, title, summary, created_at, file_loc
+			FROM posts
+			WHERE post_id = ?
+		) AS p
+		LEFT JOIN posts_tags pt ON pt.post_id = p.post_id
+		LEFT JOIN tags t ON t.tag_id = pt.tag_id
+		GROUP BY p.post_id, p.title, p.summary, p.created_at, p.file_loc
+		`, postID,
+	).Scan(&post_id, &title, &summary, &created_at, &file_loc, &tags)
+
+	if err != nil {
+		return Post{}, fmt.Errorf("db row error: %s", err)
+	}
+
+	tagList := []string{}
+	if tags.Valid && tags.String != "" {
+		tagList = strings.Split(tags.String, ",")
+	}
+
+	if len(tagList) < 1 {
+		tagList = append(tagList, "None")
+	}
+
+	content, err := mdToHTML(file_loc)
+
+	if err != nil {
+		return Post{}, fmt.Errorf("md error: %s", err)
+	}
+
+	post := Post{
+		ID:      post_id,
+		Title:   title,
+		Summary: summary,
+		Date:    created_at,
+		FileLoc: file_loc,
+		Topics:  tagList,
+		Content: content,
+	}
+
+	return post, nil
+
+}
+
+func mdToHTML(path string) (template.HTML, error) {
 	file, err := os.Open("./posts/" + path)
 	if err != nil {
 		return "", err
@@ -180,5 +243,5 @@ func mdToHTML(path string) (string, error) {
 		return "", err
 	}
 
-	return buf.String(), nil
+	return template.HTML(buf.String()), nil
 }

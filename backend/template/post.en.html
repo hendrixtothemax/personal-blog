@@ -1,0 +1,10 @@
+{{template "post.en.html" .}}
+
+{{define "title"}}{{.Data.Post.Title}}{{end}}
+
+{{define "content"}}
+    <div>
+        <h1>{{.Data.Post.Title}}</h1>
+        <h1>{{.Data.Post.Content}}</h1>
+    </div>
+{{end}}

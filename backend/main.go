@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
 	"github.com/gorilla/mux"
@@ -29,6 +30,7 @@ func main() {
 	// r.Handle("/", LoggingMiddleware(http.HandlerFunc(indexHandler)))
 	r.Handle("/", ChainMiddleware(indexHandler(db), LoggingMiddleware))
 	r.Handle("/blog", ChainMiddleware(blogHandler(db), LoggingMiddleware))
+	r.Handle("/blog/{id}", ChainMiddleware(blogPostHandlerID(db), LoggingMiddleware))
 	r.Handle("/login", LoggingMiddleware(http.HandlerFunc(loginHandler)))
 	r.Handle("/logout", ChainMiddleware(logoutHandler(db), LoggingMiddleware))
 	r.Handle("/favicon.ico", LoggingMiddleware(http.HandlerFunc(faviconHandler)))
@@ -118,6 +120,57 @@ func blogHandler(db *sql.DB) http.Handler {
 			"template/navbar.en.html", // partial navbar
 			"template/blog.en.html",   // overrides blocks in base
 			"template/postsummary.en.html",
+		))
+
+		// Execute the base template which uses blocks from index.en.html
+		err = tmpl.ExecuteTemplate(w, "base.en.html", data)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Template render error: %v", err), http.StatusInternalServerError)
+			return
+		}
+	})
+}
+
+func blogPostHandlerID(db *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set headers
+		w.Header().Add("Cache-Control", "must-revalidate")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
+
+		post_id := mux.Vars(r)["id"]
+
+		post_id_int, err := strconv.Atoi(post_id)
+		if err != nil {
+			http.Error(w, "Invalid blog ID", http.StatusBadRequest)
+			return
+		}
+
+		// Get user info if authenticated
+		user, err0 := getUserFromSession(r, db) // Ignore error if anonymous
+
+		if err0 != nil {
+			fmt.Printf("Error Getting User: %s \n", err0)
+		}
+
+		post, err := getPost(db, post_id_int)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error Getting Post: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		data := TemplateData{
+			IsAuthenticated: user != nil,
+			User:            user,
+			Data: map[string]interface{}{
+				"Post": post,
+			},
+		}
+
+		// Parse all needed templates
+		tmpl := template.Must(template.ParseFiles(
+			"template/base.en.html",   // defines "base"
+			"template/navbar.en.html", // partial navbar
+			"template/post.en.html",
 		))
 
 		// Execute the base template which uses blocks from index.en.html
