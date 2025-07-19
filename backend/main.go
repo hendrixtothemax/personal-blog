@@ -98,9 +98,18 @@ func blogHandler(db *sql.DB) http.Handler {
 			fmt.Printf("Error Getting User: %s \n", err0)
 		}
 
+		posts, err := getPosts(db)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error Getting Posts: %v", err), http.StatusInternalServerError)
+			return
+		}
+
 		data := TemplateData{
 			IsAuthenticated: user != nil,
 			User:            user,
+			Data: map[string]interface{}{
+				"Posts": posts,
+			},
 		}
 
 		// Parse all needed templates
@@ -108,10 +117,11 @@ func blogHandler(db *sql.DB) http.Handler {
 			"template/base.en.html",   // defines "base"
 			"template/navbar.en.html", // partial navbar
 			"template/blog.en.html",   // overrides blocks in base
+			"template/postsummary.en.html",
 		))
 
 		// Execute the base template which uses blocks from index.en.html
-		err := tmpl.ExecuteTemplate(w, "base.en.html", data)
+		err = tmpl.ExecuteTemplate(w, "base.en.html", data)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Template render error: %v", err), http.StatusInternalServerError)
 			return

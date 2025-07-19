@@ -1,0 +1,13 @@
+{{define "postsummary.en.html"}}
+<div class="blog-post-box" style="background-color: cornsilk; color: black; padding: 1.25rem; border-radius: 1.5rem; width: 710px;">
+    <h2>{{.Title}}</h2>
+    <p>{{.Date}}</p>
+    <p>{{.Summary}}</p>
+    <div style="display: flex; gap: 0.4rem;">
+        <span>Topics:</span>
+        {{range .Topics}}
+            <span>{{.}}</span>
+        {{end}}
+    </div>
+</div>
+{{end}}

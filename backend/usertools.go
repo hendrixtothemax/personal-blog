@@ -14,6 +14,14 @@ type User struct {
 type TemplateData struct {
 	IsAuthenticated bool
 	User            *User
+	Data            map[string]interface{}
+}
+
+type Post struct {
+	Title   string
+	Date    string
+	Summary string
+	Topics  []string
 }
 
 func getUserFromSession(r *http.Request, db *sql.DB) (*User, error) {
@@ -55,4 +63,25 @@ func hasSession(r *http.Request, db *sql.DB) (int, string, error) {
 	}
 
 	return userID, cookie.Value, nil
+}
+
+func getPosts(db *sql.DB) (*[]Post, error) {
+	var posts []Post
+
+	rows, err := db.Query(
+		`SELECT p.post_id, p.title, p.created_at, t.tag_name
+		FROM (
+			SELECT * FROM posts WHERE public = 1 ORDER BY created_at DESC LIMIT 5
+		) p
+		JOIN posts_tags pt ON pt.post_id = p.post_id
+		JOIN tags t ON t.tag_id = pt.tag_id;
+		`,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("db error: %s", err)
+	}
+	defer rows.Close()
+
+	return &posts, nil
 }

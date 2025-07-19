@@ -1,14 +1,16 @@
+{{template "blog.en.html" .}}
+
 {{define "title"}}Blog{{end}}
 
 {{define "content"}}
     <div id="scroll" style="max-width: 70%; min-width: fit-content;">
         <div class="post-holder" style="display: flex; flex-direction: column; gap: 1.25rem;">
-            <div class="blog-post-box" style="background-color: cornsilk; color: black; padding: 1.25rem; border-radius: 1.5rem; width: 710px;">
-                <h2>Why I Like Japan</h2>
-                <p>07/11/2025</p>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam malesuada id velit et vulputate. Curabitur ipsum est, condimentum et facilisis sit amet, euismod in augue. Etiam molestie nibh nisl, sit.</p>
-                <div style="display: flex; gap: 0.4rem;"><span>Topics:</span><span>Japan</span><span>Technology</span></div>
-            </div>
+            {{with index .Data "Posts"}}
+                {{range .}}
+                    {{template "postsummary.en.html" .}}
+                {{end}}
+            {{end}}
+
 
             <div class="blog-post-box" style="background-color: cornsilk; color: black; padding: 1.25rem; border-radius: 1.5rem; width: 710px;">
                 <h2>Why I Like Japan</h2>
