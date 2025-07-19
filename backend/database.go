@@ -39,6 +39,7 @@ func startDB() *sql.DB {
 	CREATE TABLE IF NOT EXISTS posts (
 		post_id INTEGER PRIMARY KEY AUTOINCREMENT,
 		title TEXT NOT NULL,
+		summary TEXT NOT NULL,
 		file_loc TEXT NOT NULL,
 		public BOOLEAN DEFAULT TRUE,
 		created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))

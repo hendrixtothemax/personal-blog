@@ -4,7 +4,9 @@
 set -e
 
 # Print each command before executing (optional for debugging)
-#set -x
+# set -x
+
+cd "$(dirname "$0")" || exit 1
 
 # Function to print an error and exit
 fail() {
