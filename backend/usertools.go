@@ -78,16 +78,6 @@ func hasSession(r *http.Request, db *sql.DB) (int, string, error) {
 func getPosts(db *sql.DB) (*[]Post, error) {
 	var posts []Post
 
-	// rows, err := db.Query(
-	// 	`SELECT p.post_id, p.title, p.created_at, t.tag_name
-	// 	FROM (
-	// 		SELECT * FROM posts AS p WHERE p.public = 1 ORDER BY created_at DESC LIMIT 5
-	// 	) p
-	// 	JOIN posts_tags pt ON pt.post_id = p.post_id
-	// 	JOIN tags t ON t.tag_id = pt.tag_id;
-	// 	`,
-	// )
-
 	rows, err := db.Query(
 		`
 		SELECT p.post_id, p.title, p.summary, p.created_at, p.file_loc, GROUP_CONCAT(t.tag_name) AS tags
@@ -99,7 +89,9 @@ func getPosts(db *sql.DB) (*[]Post, error) {
 			LIMIT 5
 		) AS p
 		LEFT JOIN posts_tags pt ON pt.post_id = p.post_id
-		LEFT JOIN tags t ON t.tag_id = pt.tag_id;
+		LEFT JOIN tags t ON t.tag_id = pt.tag_id
+		GROUP BY p.post_id, p.title, p.summary, p.created_at, p.file_loc
+		ORDER BY p.created_at DESC;
 		`,
 	)
 
@@ -129,7 +121,20 @@ func getPosts(db *sql.DB) (*[]Post, error) {
 			tagList = strings.Split(tags.String, ",")
 		}
 
+		if len(tagList) < 1 {
+			tagList = append(tagList, "None")
+		}
+
 		fmt.Printf("PID: %s | Title: %s | Created At: %s | File Loc: %s | Tag Numbs: %d\n", post_id, title, created_at, file_loc, len(tagList))
+
+		curPost := Post{
+			Title:   title,
+			Summary: summary,
+			Date:    created_at,
+			Topics:  tagList,
+		}
+
+		posts = append(posts, curPost)
 
 		numbRows += 1
 	}
