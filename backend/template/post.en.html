@@ -3,8 +3,16 @@
 {{define "title"}}{{.Data.Post.Title}}{{end}}
 
 {{define "content"}}
-    <div>
+    <div style="background-color: #457B9D; padding: 2.5rem; color: whitesmoke; border: solid #1D3557 0.25rem;">
         <h1>{{.Data.Post.Title}}</h1>
-        <h1>{{.Data.Post.Content}}</h1>
+        <span>{{.Data.Post.Date}}</span>
+        <div>
+            <span>Topics:</span>
+            {{range .Data.Post.Topics}}
+            <span>{{.}}</span>
+            {{end}}
+        </div>
+        <hr style="border: solid whitesmoke 0.15rem">
+        <div>{{.Data.Post.Content}}</div>
     </div>
 {{end}}
