@@ -7,9 +7,13 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
+	"time"
 
 	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
 	"github.com/gorilla/mux"
@@ -31,6 +35,8 @@ func main() {
 	r.Handle("/", ChainMiddleware(indexHandler(db), LoggingMiddleware))
 	r.Handle("/blog", ChainMiddleware(blogHandler(db), LoggingMiddleware))
 	r.Handle("/blog/{id}", ChainMiddleware(blogPostHandlerID(db), LoggingMiddleware))
+	r.Handle("/create/post", ChainMiddleware(createPostPageHandler(db), LoggingMiddleware))
+	r.Handle("/create/post/push", ChainMiddleware(createPost(db), LoggingMiddleware))
 	r.Handle("/login", LoggingMiddleware(http.HandlerFunc(loginHandler)))
 	r.Handle("/logout", ChainMiddleware(logoutHandler(db), LoggingMiddleware))
 	r.Handle("/favicon.ico", LoggingMiddleware(http.HandlerFunc(faviconHandler)))
@@ -175,6 +181,167 @@ func blogPostHandlerID(db *sql.DB) http.Handler {
 
 		// Execute the base template which uses blocks from index.en.html
 		err = tmpl.ExecuteTemplate(w, "base.en.html", data)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Template render error: %v", err), http.StatusInternalServerError)
+			return
+		}
+	})
+}
+
+func saveUploadedFile(file multipart.File, header *multipart.FileHeader, uploadDir string) (string, string, error) {
+	defer file.Close()
+
+	// Reset file pointer to start (in case it's been partially read earlier)
+	if seeker, ok := file.(io.Seeker); ok {
+		_, err := seeker.Seek(0, io.SeekStart)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to reset file pointer: %w", err)
+		}
+	}
+
+	// Sanitize original filename
+	ext := filepath.Ext(header.Filename)
+	base := strings.TrimSuffix(filepath.Base(header.Filename), ext)
+
+	// Add timestamp in milliseconds
+	timestamp := time.Now().UnixNano() / 1e6
+	filename := fmt.Sprintf("%s-%d%s", base, timestamp, ext)
+
+	// Ensure upload directory exists
+	err := os.MkdirAll(uploadDir, 0755)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to create upload dir: %w", err)
+	}
+
+	// Create destination file
+	path := filepath.Join(uploadDir, filename)
+	dst, err := os.Create(path)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to create destination file: %w", err)
+	}
+	defer dst.Close()
+
+	// Copy the uploaded file contents to the destination file
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to save file: %w", err)
+	}
+
+	return path, filename, nil
+}
+
+func createPost(db *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		const maxUploadSize = 50 << 20 // 50 MB
+		r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+
+		// Set headers
+		w.Header().Set("Cache-Control", "must-revalidate")
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+		// Check auth
+		user, err := getUserFromSession(r, db)
+		if err != nil || user == nil {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
+		// Parse multipart form
+		err = r.ParseMultipartForm(50 << 20) // 50 MB
+		if err != nil {
+			http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+			return
+		}
+
+		// Get the post title
+		title := r.FormValue("post-title")
+		if title == "" {
+			http.Error(w, "Missing title", http.StatusBadRequest)
+			return
+		}
+
+		// Get the uploaded file
+		file, header, err := r.FormFile("postfile")
+		if err != nil {
+			http.Error(w, "Error retrieving file", http.StatusBadRequest)
+			return
+		}
+		defer file.Close()
+
+		// Read file contents
+		var buf strings.Builder
+		_, err = io.Copy(&buf, file)
+		if err != nil {
+			http.Error(w, "Error reading file", http.StatusInternalServerError)
+			return
+		}
+
+		content := buf.String()
+
+		fmt.Printf("Received post: title=%s, filename=%s, content length=%d\n",
+			title, header.Filename, len(content))
+
+		// Define where to save uploaded files
+		uploadDir := "./posts"
+
+		// Save file with timestamp
+		savedPath, savedFileName, err := saveUploadedFile(file, header, uploadDir)
+		if err != nil {
+			http.Error(w, "Failed to save file", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Printf("File saved to: %s as %s\n", savedPath, savedFileName)
+
+		result, err := db.Exec("INSERT INTO posts (title, summary, file_loc, public) VALUES (?, '', ?, 1)", title, savedFileName)
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println(result)
+
+		// Success response
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("File uploaded successfully."))
+	})
+}
+
+func createPostPageHandler(db *sql.DB) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set headers
+		w.Header().Add("Cache-Control", "must-revalidate")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
+
+		// Get user info if authenticated
+		user, err0 := getUserFromSession(r, db) // Ignore error if anonymous
+
+		if err0 != nil {
+			fmt.Printf("Error Getting User: %s \n", err0)
+		}
+
+		data := TemplateData{
+			IsAuthenticated: user != nil,
+			User:            user,
+			// Data: map[string]interface{}{
+			// 	"Post": post,
+			// },
+		}
+
+		if !data.IsAuthenticated {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+
+		// Parse all needed templates
+		tmpl := template.Must(template.ParseFiles(
+			"template/base.en.html",   // defines "base"
+			"template/navbar.en.html", // partial navbar
+			"template/postcreator.en.html",
+		))
+
+		// Execute the base template which uses blocks from index.en.html
+		err := tmpl.ExecuteTemplate(w, "base.en.html", data)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Template render error: %v", err), http.StatusInternalServerError)
 			return
