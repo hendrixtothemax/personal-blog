@@ -5,8 +5,16 @@
 {{define "content"}}
     <div id="scroll" style="max-width: 80%; min-width: fit-content;">
         <form action="/create/post/push" method="post" enctype="multipart/form-data">
-            <label for="post-title">Title</label>
+            <label for="post-title">Title</label><br>
             <input id="post-title" name="post-title" type="text" required>
+            <div id="input-container">
+                <label for="post-summary">Summary</label><br>
+                <textarea id="post-summary" name="post-summary" rows="5" cols="40" required></textarea>
+            </div>
+            <div id="input-container">
+                <label for="post-public">Public:</label>
+                <input type="checkbox" id="post-public" name="post-public" checked>
+            </div>
             <div id="input-container">
                 <label for="postfile">Choose a markdown file:</label><br>
                 <input type="file" id="postfile" name="postfile" accept=".md" required/>

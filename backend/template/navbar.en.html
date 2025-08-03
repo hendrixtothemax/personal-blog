@@ -3,8 +3,9 @@
         <span class="navbar-element"><a href="/">Home</a></span>
         <span class="navbar-element"><a href="/blog">Blog</a></span>
     </span>
-    <span class="navbar-element" style="margin-left: auto;">
+    <span class="navsection" style="margin-left: auto;">
         {{if .IsAuthenticated}}
+            <span class="navbar-element"><a href="/create/post">Create Post</a></span>
             <span class="navbar-element"><a href="/logout">Logout</a></span>
         {{else}}
             <span class="navbar-element"><a href="/login">Login</a></span>

@@ -260,6 +260,20 @@ func createPost(db *sql.DB) http.Handler {
 			return
 		}
 
+		// Get the post summary
+		summary := r.FormValue("post-summary")
+		if title == "" {
+			http.Error(w, "Missing summary", http.StatusBadRequest)
+			return
+		}
+
+		// Get the post public
+		public := r.FormValue("post-public")
+		if title == "" {
+			http.Error(w, "Missing public", http.StatusBadRequest)
+			return
+		}
+
 		// Get the uploaded file
 		file, header, err := r.FormFile("postfile")
 		if err != nil {
@@ -292,14 +306,19 @@ func createPost(db *sql.DB) http.Handler {
 		}
 
 		fmt.Printf("File saved to: %s as %s\n", savedPath, savedFileName)
+		fmt.Println(public)
 
-		result, err := db.Exec("INSERT INTO posts (title, summary, file_loc, public) VALUES (?, '', ?, 1)", title, savedFileName)
+		public_status := "0"
+
+		if public == "on" {
+			public_status = "1"
+		}
+
+		_, err = db.Exec("INSERT INTO posts (title, summary, file_loc, public) VALUES (?, ?, ?, ?)", title, summary, savedFileName, public_status)
 		if err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
 			return
 		}
-
-		fmt.Println(result)
 
 		// Success response
 		w.WriteHeader(http.StatusOK)
