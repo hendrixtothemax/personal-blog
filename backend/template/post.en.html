@@ -5,7 +5,7 @@
 {{define "content"}}
     <div style="background-color: #457B9D; padding: 2.5rem; color: whitesmoke; border: solid #1D3557 0.25rem;">
         <h1>{{.Data.Post.Title}}</h1>
-        <span>{{.Data.Post.Date}}</span>
+        <span class="post-date">{{.Data.Post.Date}}</span>
         <div>
             <span>Topics:</span>
             {{range .Data.Post.Topics}}
