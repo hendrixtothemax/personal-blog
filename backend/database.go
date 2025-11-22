@@ -57,7 +57,7 @@ func startDB() *sql.DB {
 	const postTagsTable = `
 	CREATE TABLE IF NOT EXISTS posts_tags (
 		post_id INTEGER NOT NULL,
-		tag_id INTEGER UNIQUE NOT NULL,
+		tag_id INTEGER NOT NULL,
 		created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
 		FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
 		FOREIGN KEY (tag_id) REFERENCES tags(tag_id) ON DELETE CASCADE,

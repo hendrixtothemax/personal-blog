@@ -190,3 +190,150 @@ pre {
   background-color: #8808bb;
   cursor: pointer;
 }
+
+/* --- Form Specific Styles (for the create post page) --- */
+
+/* Base form container */
+#scroll form { /* Targeting the form specifically within #scroll */
+    background-color: transparent; /* Inherit background from #scroll */
+    padding: 0; /* Remove default form padding, #scroll handles it */
+    border-radius: 0; /* Remove default form border-radius */
+    box-shadow: none; /* Remove default form shadow */
+    max-width: none; /* Remove default form max-width */
+    margin: 0; /* Remove default form margin */
+    /* Ensure content inside form spans full #scroll width */
+    width: 100%;
+    box-sizing: border-box; /* Crucial for padding/border calculation */
+}
+
+.form-group {
+    margin-bottom: 1.5rem; /* More space between groups, consistent with existing gaps */
+    position: relative; /* Absolutely essential for tag suggestion positioning */
+}
+
+/* Style for labels */
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: normal; /* Adjust if you prefer bold for labels */
+    color: #F1FAEE; /* Lighter color from your palette */
+    font-size: 1.1rem; /* Slightly larger for readability */
+}
+
+/* General input/textarea styling */
+.form-input,
+.form-textarea,
+.form-file-input {
+    width: calc(100% - 1.5rem); /* Account for padding */
+    padding: 0.75rem; /* Consistent with other padding */
+    border: 0.1rem solid #457B9D; /* Border from your palette */
+    border-radius: 0.5rem; /* Rounded corners */
+    box-sizing: border-box; /* Include padding and border in element's total width */
+    font-size: 1rem;
+    background-color: #F1FAEE; /* Light background for input fields */
+    color: #1D3557; /* Dark text color */
+}
+
+.form-textarea {
+    resize: vertical; /* Allow vertical resizing for textareas */
+    min-height: 100px; /* Give it a decent initial height */
+}
+
+/* Focus styles */
+.form-input:focus,
+.form-textarea:focus {
+    border-color: #A8DADC; /* Highlight on focus with a lighter blue */
+    outline: none; /* Remove default outline */
+    box-shadow: 0 0 0 0.2rem rgba(168, 218, 220, 0.4); /* Soft glow on focus */
+}
+
+/* Checkbox group styling */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Space between checkbox and label */
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-checkbox {
+    width: 1.25rem; /* Custom size for checkbox */
+    height: 1.25rem;
+    accent-color: #A8DADC; /* Colors the checkbox itself */
+    cursor: pointer;
+}
+
+/* File input specific styles */
+.form-file-input {
+    /* File input might be tricky to style consistently across browsers */
+    /* We'll apply basic styles, but specific file button styling often requires custom wrappers or JS */
+    color: #F1FAEE; /* Text color for the "Choose File" text */
+    background-color: #1D3557; /* Darker background for the input area */
+    border: 0.1rem solid #457B9D;
+    cursor: pointer;
+}
+
+/* Submit button - reusing your existing submit-btn class */
+.submit-button {
+    /* We can just alias or directly use your existing .submit-btn styles */
+    /* For consistency, I'll map it to your existing class */
+    /* You can remove this .submit-button selector if you replace it directly in the HTML */
+}
+.submit-button.submit-button { /* To give it higher specificity if needed */
+    color: whitesmoke;
+    font-size: 1.1rem; /* Slightly larger font */
+    background-color: #1D3557;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1.5rem; /* More generous padding */
+    transition: background-color 0.3s ease-out;
+    border: 0.15rem solid #F1FAEE; /* Lighter border from your palette */
+    cursor: pointer;
+    display: block; /* Make it a block element to control width/margins easily */
+    max-width: fit-content; /* Allow button to shrink to content */
+    margin-top: 2rem; /* More space above the button */
+}
+
+.submit-button:hover {
+    background-color: #457B9D; /* Hover color from your palette */
+}
+
+/* --- HTMX Tag Suggestions Styling --- */
+
+.tag-suggestions-container {
+    position: absolute; /* Crucial for dropdown behavior */
+    top: 100%; /* Positions it directly below the input field */
+    left: 0;
+    right: 0; /* Makes it span the width of the parent .form-group */
+    border: 1px solid #457B9D; /* Border from your palette */
+    background-color: #F1FAEE; /* Light background for suggestions */
+    box-shadow: 0 4px 8px rgba(29, 53, 87, 0.2); /* Darker, slightly offset shadow */
+    z-index: 1000; /* Ensure it's on top of other content */
+    max-height: 180px; /* Limit height and enable scrolling */
+    overflow-y: auto;
+    border-radius: 0 0 0.5rem 0.5rem; /* Rounded bottom corners */
+    list-style: none; /* Remove bullet points if you use ul/li */
+    padding: 0; /* Remove default padding */
+    margin: 0; /* Remove default margin */
+}
+
+.tag-suggestion-item {
+    padding: 0.75rem 1rem; /* Consistent padding */
+    cursor: pointer;
+    border-bottom: 1px solid #A8DADC; /* Subtle separator from your palette */
+    color: #1D3557; /* Dark text color */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tag-suggestion-item:last-child {
+    border-bottom: none; /* No border for the last item */
+}
+
+.tag-suggestion-item:hover {
+    background-color: #A8DADC; /* Highlight on hover from your palette */
+    color: #1D3557; /* Keep dark text, or change to #F1FAEE if you prefer */
+}
+
+iframe {
+    display: block; /* Treat iframes as block-level elements */
+    margin: 0 auto; /* Center horizontally by setting auto margins */
+}

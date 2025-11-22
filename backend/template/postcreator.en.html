@@ -1,25 +1,50 @@
-{{template "blog.en.html" .}}
+{{template "base.en.html" .}}
 
 {{define "title"}}Create Post{{end}}
 
 {{define "content"}}
     <div id="scroll" style="max-width: 80%; min-width: fit-content;">
         <form action="/create/post/push" method="post" enctype="multipart/form-data">
-            <label for="post-title">Title</label><br>
-            <input id="post-title" name="post-title" type="text" required>
-            <div id="input-container">
+            <div class="form-group">
+                <label for="post-title">Title</label><br>
+                <input id="post-title" name="post-title" type="text" required class="form-input">
+            </div>
+
+            <div class="form-group">
                 <label for="post-summary">Summary</label><br>
-                <textarea id="post-summary" name="post-summary" rows="5" cols="40" required></textarea>
+                <textarea id="post-summary" name="post-summary" rows="5" cols="40" required class="form-textarea"></textarea>
             </div>
-            <div id="input-container">
+
+            <div class="form-group checkbox-group">
                 <label for="post-public">Public:</label>
-                <input type="checkbox" id="post-public" name="post-public" checked>
+                <input type="checkbox" id="post-public" name="post-public" checked class="form-checkbox">
             </div>
-            <div id="input-container">
+
+            <div class="form-group">
                 <label for="postfile">Choose a markdown file:</label><br>
-                <input type="file" id="postfile" name="postfile" accept=".md" required/>
+                <input type="file" id="postfile" name="postfile" accept=".md" required class="form-file-input"/>
             </div>
-            <input type="submit" value="Submit Post">
+
+            <div class="form-group" id="input-container"> <!-- IMPORTANT: Keep this ID for HTMX target -->
+                <label for="post-tags">Tags (comma-separated, no spaces in individual tags)</label><br>
+                <input
+                    id="post-tags"
+                    name="post-tags"
+                    type="text"
+                    hx-post="/tags/suggest"
+                    hx-trigger="keyup changed delay:300ms"
+                    hx-target="#tag-suggestions"
+                    hx-swap="innerHTML"
+                    autocomplete="off"
+                    class="form-input"
+                    placeholder="e.g., golang,htmx,webdev"
+                >
+                <div id="tag-suggestions" class="tag-suggestions-container"></div> <!-- Container for suggestions -->
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Submit Post" class="submit-button">
+            </div>
         </form>
     </div>
 {{end}}
