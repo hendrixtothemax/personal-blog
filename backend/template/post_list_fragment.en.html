@@ -1,0 +1,9 @@
+{{define "post_list_fragment.en.html"}}
+    {{with index .Data "Posts"}}
+        {{range .}}
+            {{template "postsummary.en.html" .}}
+        {{end}}
+    {{else}}
+        <p>No posts found.</p>
+    {{end}}
+{{end}}

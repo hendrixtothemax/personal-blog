@@ -3,10 +3,28 @@
     <h2><a href="/blog/{{.ID}}">{{.Title}}</a></h2>
     <p class="post-date">{{.Date}}</p>
     <p>{{.Summary}}</p>
-    <div style="display: flex; gap: 0.4rem;">
-        <span>Topics:</span>
+    <div class="post-tags-container" style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem;">
+        <span style="font-weight: bold;">Topics:</span>
         {{range .Topics}}
-            <span>{{.}}</span>
+            {{if ne . "None"}}
+                <span
+                    class="tag-item"
+                    hx-get="/api/posts?search_by=tag&q={{.}}" 
+                    hx-target="#post-list"                    
+                    hx-swap="innerHTML"                       
+                    hx-indicator="#loading-indicator"         
+                    style="
+                        background-color: #457B9D; /* Example: Use a color from your palette */
+                        color: #F1FAEE; /* Example: Use text color from your palette */
+                        padding: 0.3rem 0.6rem;
+                        border-radius: 0.5rem;
+                        cursor: pointer;
+                        transition: background-color 0.3s ease;
+                    "
+                >{{.}}</span>
+            {{else}}
+                <span>None</span>
+            {{end}}
         {{end}}
     </div>
 </div>

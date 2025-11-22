@@ -1,28 +1,75 @@
-{{template "blog.en.html" .}}
-
+{{template "base.en.html" .}}
 {{define "title"}}Blog{{end}}
 
 {{define "content"}}
-    <div id="scroll" style="max-width: 70%; min-width: fit-content;">
-        <div class="post-holder" style="display: flex; flex-direction: column; gap: 1.25rem;">
-            {{with index .Data "Posts"}}
-                {{range .}}
-                    {{template "postsummary.en.html" .}}
-                {{end}}
-            {{end}}
+    <div id="blog-content-container"> <!-- New wrapper for flexbox layout -->
+        <div id="sortbar">
+            <div id="sortbar-elements">
+                <span id="searchbar-controls">
+                    <input
+                        id="searchinput"
+                        name="q"
+                        type="text"
+                        placeholder="Search posts..."
+                        hx-get="/api/posts" 
+                        hx-trigger="keyup changed delay:500ms, searchbutton.click"
+                        hx-target="#post-list"
+                        hx-swap="innerHTML"
+                        hx-include="[name='search_by'], [name='sort_by']"
+                    >
+                    <button
+                        id="searchbutton"
+                        hx-get="/api/posts"
+                        hx-target="#post-list"
+                        hx-swap="innerHTML"
+                        hx-include="#searchinput, [name='search_by'], [name='sort_by']"
+                        class="submit-button"
+                    >Search</button>
 
+                    <span>Search By:</span>
+                    <select
+                        name="search_by"
+                        hx-get="/api/posts"
+                        hx-trigger="change"
+                        hx-target="#post-list"
+                        hx-swap="innerHTML"
+                        hx-include="#searchinput, [name='sort_by']"
+                    >
+                        <option value="name" selected>Post Name</option>
+                        <option value="tag">Tags</option>
+                    </select>
 
-            <div class="blog-post-box" style="background-color: cornsilk; color: black; padding: 1.25rem; border-radius: 1.5rem; width: 710px;">
-                <h2>Why I Like Japan</h2>
-                <div style="display: flex; flex-direction: row; gap: 1.25rem; align-items: stretch; align-items: center;">
-                    <img src="/favicon.ico" style="min-height: 140px; min-width: 140px; aspect-ratio: 1 / 1; object-fit: cover; flex-shrink: 0; display: block;" alt="sushiroll"/>
-                    <div>
-                        <p>07/11/2025</p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam malesuada id velit et vulputate. Curabitur ipsum est, condimentum et facilisis sit amet, euismod in augue. Etiam molestie nibh nisl, sit.</p>
-                        <div style="display: flex; gap: 0.4rem;"><span>Topics:</span><span>Japan</span><span>Technology</span></div>
-                    </div>
-                </div>
+                    <span>Sort By:</span>
+                    <select
+                        name="sort_by"
+                        hx-get="/api/posts"
+                        hx-trigger="change"
+                        hx-target="#post-list"
+                        hx-swap="innerHTML"
+                        hx-include="#searchinput, [name='search_by']"
+                    >
+                        <option value="date-desc" selected>Most Recent</option>
+                        <option value="date-asc">Least Recent</option>
+                        <option value="alphabetical">Alphabetical</option>
+                    </select>
+                </span>
             </div>
         </div>
-    </div>
+
+        <div id="scroll">
+            <div id="post-list" class="post-holder">
+                {{template "post_list_fragment.en.html" .}}
+            </div>
+        </div>
+    </div> <!-- End of blog-content-container -->
+{{end}}
+
+{{define "post_list_fragment.en.html"}}
+    {{with index .Data "Posts"}}
+        {{range .}}
+            {{template "postsummary.en.html" .}}
+        {{end}}
+    {{else}}
+        <p>No posts found.</p>
+    {{end}}
 {{end}}

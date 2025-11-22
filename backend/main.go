@@ -51,6 +51,8 @@ func main() {
 	r.Handle("/create/post/push", ChainMiddleware(createPost(db), LoggingMiddleware))
 	// Make sure createPostPageHandler is also chained if not already
 	r.Handle("/create/post", ChainMiddleware(createPostPageHandler(db), LoggingMiddleware))
+	// HTMX Endpoint dynamic post fetching
+	r.Handle("/api/posts", ChainMiddleware(APIGetPosts(db), LoggingMiddleware)) // <--- NEW
 
 	// Use path variable!
 	r.Handle("/htmx/{filename}", LoggingMiddleware(http.HandlerFunc(htmxTemplateHandler)))

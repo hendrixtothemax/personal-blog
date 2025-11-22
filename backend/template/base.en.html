@@ -5,23 +5,52 @@
         <title>{{block "title" .}}{{end}}</title>
         <script src="/js/htmx.js"></script>
         <link rel="stylesheet" href="/css/index.css">
-        <script defer>
-            document.addEventListener("DOMContentLoaded", () => {
-            const dates = document.querySelectorAll(".post-date");
+        <script>
+            // Wrap your date formatting logic in a named function
+            function formatDates() {
+                const dates = document.querySelectorAll(".post-date");
 
-            dates.forEach(el => {
-                const isoString = el.textContent.trim();
-                const date = new Date(isoString);
+                dates.forEach(el => {
+                    // Only format if it hasn't been formatted already
+                    // You can use a data attribute or check for a specific format
+                    if (!el.dataset.formatted) {
+                        const isoString = el.textContent.trim();
+                        // Basic check to avoid parsing non-date strings or already formatted ones
+                        if (isoString && isoString.includes("T") && isoString.includes("Z")) { // Expecting ISO 8601 like "YYYY-MM-DDTHH:MM:SSZ"
+                            try {
+                                const date = new Date(isoString);
 
-                // format: Month Day, Year (or change to your preference)
-                const formatted = date.toLocaleDateString(undefined, {
-                year: "numeric",
-                month: "long",
-                day: "numeric"
+                                // Check if the date parsing was successful and it's a valid date
+                                if (!isNaN(date.getTime())) {
+                                    // format: Month Day, Year (or change to your preference)
+                                    const formatted = date.toLocaleDateString(undefined, {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric"
+                                    });
+
+                                    el.textContent = formatted;
+                                    el.dataset.formatted = "true"; // Mark as formatted
+                                }
+                            } catch (e) {
+                                console.error("Error formatting date:", isoString, e);
+                            }
+                        }
+                    }
                 });
+            }
 
-                el.textContent = formatted;
-            });
+            document.addEventListener("DOMContentLoaded", () => {
+                // Initial run when the page first loads
+                formatDates();
+
+                // Listen for HTMX afterSwap events on the document body
+                // The 'detail.target' is the element that was updated by HTMX.
+                // You might optimize by only searching within detail.target if performance is an issue,
+                // but document.querySelectorAll is often fine for small scripts.
+                document.body.addEventListener("htmx:afterSwap", () => {
+                    formatDates();
+                });
             });
         </script>
         <link rel="preconnect" href="https://fonts.googleapis.com">

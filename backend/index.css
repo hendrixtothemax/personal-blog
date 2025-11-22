@@ -1,13 +1,21 @@
+/* --- Base Styles --- */
 /*https://coolors.co/e63946-f1faee-a8dadc-457b9d-1d3557*/
 
-:root{
+:root {
   font-family: 'Hack Nerd Font Mono', monospace;
+  /* Define your color variables for easier management */
+  --primary-dark: #1D3557;
+  --secondary-blue: #457B9D;
+  --tertiary-light-blue: #A8DADC;
+  --accent-red: #E63946;
+  --background-light: #F1FAEE;
 }
 
-body{
-  background-color: #F1FAEE;
-  padding: 0px;
-  margin: 0px;
+body {
+  background-color: var(--background-light);
+  padding: 0;
+  margin: 0;
+  color: var(--primary-dark); /* Default text color */
 }
 
 pre, code {
@@ -15,325 +23,599 @@ pre, code {
 }
 
 pre {
-  border-color: red;
-  border-width: 10px;
+  border: 10px solid var(--accent-red); /* Using color variable */
   border-radius: 30px;
   padding: 30px;
+  background-color: var(--background-light); /* Ensure background is light */
+  color: var(--primary-dark); /* Ensure text is dark */
+  overflow-x: auto; /* Handle long code lines */
 }
 
-.navbar{
+/* --- Navbar Styles --- */
+.navbar {
     display: flex;
     flex-wrap: nowrap;
     flex-direction: row;
     align-items: center;
-    padding: 0.5rem 1rem;
-    background-color: #A8DADC;
-    padding: 1rem;
-    color: #F1FAEE;
-    border-bottom: solid 0.25rem #1D3557;
+    padding: 1rem; /* Consistent padding */
+    background-color: var(--tertiary-light-blue);
+    color: var(--background-light); /* Light text on light blue navbar */
+    border-bottom: solid 0.25rem var(--primary-dark);
 }
 
-.navsection{
+.navsection {
     display: flex;
     flex-wrap: nowrap;
     flex-direction: row;
     gap: 1rem;
 }
 
-.navbar-element{
+.navbar-element {
   display: flex;
-  /*padding: 0.75rem;*/
-  background-color: #1D3557;
-  /*border: 0.175rem black solid;*/
+  background-color: var(--primary-dark);
   border-radius: 0.75rem;
   transition: background-color 0.3s ease-out;
 }
 
-.navbar-element:hover{
-  transition: background-color 0.3s ease-out;
-  background-color: #305890;
+.navbar-element:hover {
+  background-color: var(--secondary-blue); /* Hover color from palette */
 }
 
 .navbar-element a {
-    display: flex;        /* Stretch to fill container */
-    align-items: center;  /* Center text vertically */
-    justify-content: center; /* Optional: center horizontally */
-    padding: 0.75rem 1rem;  /* Controls the click area */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem;
     text-decoration: none;
     color: inherit;
 }
 
-#content-body{
+/* --- Main Content Body --- */
+#content-body {
   padding: 1.25rem;
   display: flex;
   justify-content: center;
 }
 
-#scroll{
-  padding-left: 2rem;
-  padding-right: 2rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-
-  /* margin-left: 10rem; */
-  /* margin-right: 10rem; */
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-
-  min-width: 38rem;
-
-  background-color: #457B9D;
-  border: solid 0.25rem #1D3557;
-
-  color: whitesmoke;
-}
-
-.login-box{
+/* --- Login/Signup Boxes (Reusing existing styling) --- */
+.login-box,
+.signup-box { /* Grouping both for common styles */
   display: flex;
   align-items: center;
   flex-direction: column;
-
-  padding-left: 2rem;
-  padding-right: 2rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-
-  /* margin-left: 10rem; */
-  /* margin-right: 10rem; */
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-
+  padding: 1rem 2rem; /* Consistent padding */
+  margin: 1rem auto; /* Center horizontally */
   min-width: fit-content;
-
-  background-color: #457B9D;
-  border: solid 0.25rem #1D3557;
+  background-color: var(--secondary-blue); /* Use palette color */
+  border: solid 0.25rem var(--primary-dark);
   border-radius: 1.5rem;
-
-  color: whitesmoke;
+  color: whitesmoke; /* Adjust to var(--background-light) if consistent */
 }
 
-.signup-box{
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-
-  padding-left: 2rem;
-  padding-right: 2rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-
-  /* margin-left: 10rem; */
-  /* margin-right: 10rem; */
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-
-  min-width: fit-content;
-
-  background-color: #7855cc;
-  border: solid 0.25rem #1D3557;
-  border-radius: 1.5rem;
-
-  color: whitesmoke;
+.signup-box { /* Specific override for signup box color */
+  background-color: #7855cc; /* Your custom color */
 }
 
-.login-box .signup-box h1{
+.login-box h1, .signup-box h1 { /* Grouping for specificity */
   max-width: fit-content;
-  margin-top: 0rem;
+  margin-top: 0;
+  color: inherit; /* Inherit from parent box */
 }
 
-.login-group{
+.login-group, .login-col {
   display: flex;
-  flex-direction: row;
+  flex-direction: column; /* Changed login-group to column for better stacking */
   gap: 0.5rem;
   max-width: fit-content;
+  margin-bottom: 1rem; /* Space below groups */
 }
 
-.login-col{
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  max-width: fit-content;
+.login-group.login-group { /* Specificity for login-group flex-direction row */
+    flex-direction: row;
 }
 
-.submit-btn{
-  color: whitesmoke;
-  font-size: medium;
-  background-color: #1D3557;
-  /*border: 0.175rem black solid;*/
+/* Input fields for login/signup */
+.login-box input[type="text"],
+.login-box input[type="email"],
+.login-box input[type="password"],
+.signup-box input[type="text"],
+.signup-box input[type="email"],
+.signup-box input[type="password"] {
+    padding: 0.75rem;
+    border: 1px solid var(--tertiary-light-blue);
+    border-radius: 0.5rem;
+    background-color: var(--background-light);
+    color: var(--primary-dark);
+    font-size: 1rem;
+    box-sizing: border-box;
+    width: 100%; /* Make inputs fill container */
+}
+.login-box input:focus, .signup-box input:focus {
+    border-color: var(--primary-dark);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(29, 53, 87, 0.25);
+}
+
+
+/* Submit Buttons (General) */
+.submit-btn,
+.submit-button { /* Grouped for consistency */
+  color: var(--background-light);
+  font-size: 1.1rem;
+  background-color: var(--primary-dark);
   border-radius: 0.75rem;
-  max-width: fit-content;
-  padding: 0.75rem;
+  padding: 0.75rem 1.5rem;
   transition: background-color 0.3s ease-out;
-  border: 0.15rem solid whitesmoke;
-}
-
-.submit-btn:hover{
-  transition: background-color 0.3s ease-out;
-  background-color: #305890;
+  border: 0.15rem solid var(--background-light);
   cursor: pointer;
-}
-
-.submit-alt-btn{
-  color: whitesmoke;
-  font-size: medium;
-  background-color: #550574;
-  /*border: 0.175rem black solid;*/
-  border-radius: 0.75rem;
+  display: inline-block; /* Changed to inline-block for flex items */
   max-width: fit-content;
-  padding: 0.75rem;
-  transition: background-color 0.3s ease-out;
-  border: 0.15rem solid whitesmoke;
+  margin-top: 1rem;
 }
 
-.submit-alt-btn:hover{
-  transition: background-color 0.3s ease-out;
-  background-color: #8808bb;
-  cursor: pointer;
+.submit-btn:hover,
+.submit-button:hover {
+  background-color: var(--secondary-blue);
+}
+
+.submit-alt-btn {
+  background-color: #550574; /* Custom alt color */
+  border: 0.15rem solid var(--background-light);
+}
+
+.submit-alt-btn:hover {
+  background-color: #8808bb; /* Custom alt hover color */
 }
 
 /* --- Form Specific Styles (for the create post page) --- */
 
-/* Base form container */
-#scroll form { /* Targeting the form specifically within #scroll */
+/* New Flexbox container for blog content */
+#blog-content-container {
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    align-items: center; /* Center children horizontally */
+    gap: 1.25rem; /* Space between sortbar and scroll div */
+    padding: 0rem; /* Consistent padding if #content-body is still wrapper */
+}
+
+/* Main scroll container */
+#scroll {
+  width: 100%; /* Make it fill the width of its flex parent */
+  max-width: 70%; /* Actual displayed width */
+  min-width: 38rem; /* Keep this if you want a minimum overall width for content */
+  background-color: var(--secondary-blue); /* Matches login/signup boxes */
+  border: solid 0.25rem var(--primary-dark);
+  color: var(--background-light); /* Light text on blue background */
+  padding: 1rem 2rem; /* Consistent padding */
+  border-radius: 0.75rem; /* Consistent with other boxes */
+  box-sizing: border-box; /* Crucial for width calculations */
+  margin: 0; /* Managed by parent flex gap */
+}
+
+#scroll form { /* Targeting the form specifically within #scroll for post creation */
     background-color: transparent; /* Inherit background from #scroll */
-    padding: 0; /* Remove default form padding, #scroll handles it */
-    border-radius: 0; /* Remove default form border-radius */
-    box-shadow: none; /* Remove default form shadow */
-    max-width: none; /* Remove default form max-width */
-    margin: 0; /* Remove default form margin */
-    /* Ensure content inside form spans full #scroll width */
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    max-width: none;
+    margin: 0;
     width: 100%;
-    box-sizing: border-box; /* Crucial for padding/border calculation */
+    box-sizing: border-box;
 }
 
 .form-group {
-    margin-bottom: 1.5rem; /* More space between groups, consistent with existing gaps */
-    position: relative; /* Absolutely essential for tag suggestion positioning */
+    margin-bottom: 1.5rem;
+    position: relative; /* Essential for tag suggestion positioning */
 }
 
-/* Style for labels */
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    font-weight: normal; /* Adjust if you prefer bold for labels */
-    color: #F1FAEE; /* Lighter color from your palette */
-    font-size: 1.1rem; /* Slightly larger for readability */
+    font-weight: bold; /* Labels are bold for better readability */
+    color: var(--background-light); /* Lighter color for labels */
+    font-size: 1.1rem;
 }
 
-/* General input/textarea styling */
 .form-input,
 .form-textarea,
 .form-file-input {
     width: calc(100% - 1.5rem); /* Account for padding */
-    padding: 0.75rem; /* Consistent with other padding */
-    border: 0.1rem solid #457B9D; /* Border from your palette */
-    border-radius: 0.5rem; /* Rounded corners */
-    box-sizing: border-box; /* Include padding and border in element's total width */
+    padding: 0.75rem;
+    border: 0.1rem solid var(--primary-dark);
+    border-radius: 0.5rem;
+    box-sizing: border-box;
     font-size: 1rem;
-    background-color: #F1FAEE; /* Light background for input fields */
-    color: #1D3557; /* Dark text color */
+    background-color: var(--background-light); /* Light background for inputs */
+    color: var(--primary-dark); /* Dark text color */
 }
 
 .form-textarea {
-    resize: vertical; /* Allow vertical resizing for textareas */
-    min-height: 100px; /* Give it a decent initial height */
+    resize: vertical;
+    min-height: 100px;
 }
 
-/* Focus styles */
 .form-input:focus,
-.form-textarea:focus {
-    border-color: #A8DADC; /* Highlight on focus with a lighter blue */
-    outline: none; /* Remove default outline */
-    box-shadow: 0 0 0 0.2rem rgba(168, 218, 220, 0.4); /* Soft glow on focus */
+.form-textarea:focus,
+.form-file-input:focus {
+    border-color: var(--tertiary-light-blue);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(168, 218, 220, 0.4);
 }
 
-/* Checkbox group styling */
 .checkbox-group {
     display: flex;
     align-items: center;
-    gap: 1rem; /* Space between checkbox and label */
+    gap: 1rem;
     margin-top: 1.5rem;
     margin-bottom: 1.5rem;
 }
 
 .form-checkbox {
-    width: 1.25rem; /* Custom size for checkbox */
+    width: 1.25rem;
     height: 1.25rem;
-    accent-color: #A8DADC; /* Colors the checkbox itself */
+    accent-color: var(--tertiary-light-blue);
     cursor: pointer;
 }
 
-/* File input specific styles */
-.form-file-input {
-    /* File input might be tricky to style consistently across browsers */
-    /* We'll apply basic styles, but specific file button styling often requires custom wrappers or JS */
-    color: #F1FAEE; /* Text color for the "Choose File" text */
-    background-color: #1D3557; /* Darker background for the input area */
-    border: 0.1rem solid #457B9D;
-    cursor: pointer;
-}
-
-/* Submit button - reusing your existing submit-btn class */
-.submit-button {
-    /* We can just alias or directly use your existing .submit-btn styles */
-    /* For consistency, I'll map it to your existing class */
-    /* You can remove this .submit-button selector if you replace it directly in the HTML */
-}
-.submit-button.submit-button { /* To give it higher specificity if needed */
-    color: whitesmoke;
-    font-size: 1.1rem; /* Slightly larger font */
-    background-color: #1D3557;
-    border-radius: 0.75rem;
-    padding: 0.75rem 1.5rem; /* More generous padding */
-    transition: background-color 0.3s ease-out;
-    border: 0.15rem solid #F1FAEE; /* Lighter border from your palette */
-    cursor: pointer;
-    display: block; /* Make it a block element to control width/margins easily */
-    max-width: fit-content; /* Allow button to shrink to content */
-    margin-top: 2rem; /* More space above the button */
-}
-
-.submit-button:hover {
-    background-color: #457B9D; /* Hover color from your palette */
-}
-
-/* --- HTMX Tag Suggestions Styling --- */
-
+/* --- HTMX Tag Suggestions Styling (for post creator page) --- */
 .tag-suggestions-container {
-    position: absolute; /* Crucial for dropdown behavior */
-    top: 100%; /* Positions it directly below the input field */
+    position: absolute;
+    top: 100%;
     left: 0;
-    right: 0; /* Makes it span the width of the parent .form-group */
-    border: 1px solid #457B9D; /* Border from your palette */
-    background-color: #F1FAEE; /* Light background for suggestions */
-    box-shadow: 0 4px 8px rgba(29, 53, 87, 0.2); /* Darker, slightly offset shadow */
-    z-index: 1000; /* Ensure it's on top of other content */
-    max-height: 180px; /* Limit height and enable scrolling */
+    right: 0;
+    border: 1px solid var(--secondary-blue);
+    background-color: var(--background-light);
+    box-shadow: 0 4px 8px rgba(29, 53, 87, 0.2);
+    z-index: 1000;
+    max-height: 180px;
     overflow-y: auto;
-    border-radius: 0 0 0.5rem 0.5rem; /* Rounded bottom corners */
-    list-style: none; /* Remove bullet points if you use ul/li */
-    padding: 0; /* Remove default padding */
-    margin: 0; /* Remove default margin */
+    border-radius: 0 0 0.5rem 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 .tag-suggestion-item {
-    padding: 0.75rem 1rem; /* Consistent padding */
+    padding: 0.75rem 1rem;
     cursor: pointer;
-    border-bottom: 1px solid #A8DADC; /* Subtle separator from your palette */
-    color: #1D3557; /* Dark text color */
+    border-bottom: 1px solid var(--tertiary-light-blue);
+    color: var(--primary-dark);
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .tag-suggestion-item:last-child {
-    border-bottom: none; /* No border for the last item */
+    border-bottom: none;
 }
 
 .tag-suggestion-item:hover {
-    background-color: #A8DADC; /* Highlight on hover from your palette */
-    color: #1D3557; /* Keep dark text, or change to #F1FAEE if you prefer */
+    background-color: var(--tertiary-light-blue);
+    color: var(--primary-dark);
 }
 
+/* --- Sortbar Styles (for blog list page) --- */
+#sortbar {
+    width: 100%; /* Make it fill the width of its flex parent */
+    max-width: 80%; /* Actual displayed width */
+    background-color: var(--tertiary-light-blue); /* Light blue from your palette */
+    padding: 1rem 2rem;
+    border: solid 0.25rem var(--primary-dark); /* Dark blue border */
+    border-radius: 0.75rem;
+    display: flex;
+    justify-content: center; /* Center content horizontally within the sortbar */
+    align-items: center; /* Center content vertically */
+    box-sizing: border-box;
+    margin: 0; /* Managed by parent flex gap */
+}
+
+#sortbar-elements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    color: var(--primary-dark);
+    font-size: 1rem;
+    width: 100%; /* Ensure elements fill the sortbar */
+    justify-content: center; /* Center elements if they don't fill */
+}
+
+#searchbar-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    flex-grow: 1;
+    justify-content: center;
+    min-width: 250px; /* Ensure search input and button don't get too squished */
+}
+
+#sortbar-elements input[type="text"] { /* Targeting search input specifically */
+    padding: 0.75rem;
+    border: 1px solid var(--secondary-blue);
+    border-radius: 0.5rem;
+    background-color: var(--background-light);
+    color: var(--primary-dark);
+    font-size: 1rem;
+    min-width: 150px;
+    flex-grow: 1;
+    box-sizing: border-box;
+}
+
+#sortbar-elements input[type="text"]:focus {
+    border-color: var(--primary-dark);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(29, 53, 87, 0.25);
+}
+
+#sortbar-elements button {
+    background-color: var(--primary-dark);
+    color: var(--background-light);
+    padding: 0.75rem 1.25rem;
+    border: 0.15rem solid var(--background-light);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease-out;
+    white-space: nowrap; /* Prevent "Search" button text from wrapping */
+}
+
+#sortbar-elements button:hover {
+    background-color: var(--secondary-blue);
+}
+
+#sortbar-elements span { /* Labels for "Search By:", "Sort By:" */
+    white-space: nowrap;
+    color: var(--primary-dark);
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+#sortbar-elements span:first-of-type {
+    margin-left: 0;
+}
+
+#sortbar-elements select {
+    padding: 0.75rem;
+    border: 1px solid var(--secondary-blue);
+    border-radius: 0.5rem;
+    background-color: var(--background-light);
+    color: var(--primary-dark);
+    font-size: 1rem;
+    cursor: pointer;
+    box-sizing: border-box;
+    min-width: 120px;
+
+    /* Custom arrow */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231d3557%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 0.8em;
+    padding-right: 2.5rem;
+}
+
+#sortbar-elements select:focus {
+    border-color: var(--primary-dark);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(29, 53, 87, 0.25);
+}
+
+/* --- Post List Container (#scroll) --- */
+/* (This section's #scroll styling is for the blog list, not the form creator) */
+/* The inline styles on #scroll from blog.en.html were removed,
+   so these CSS rules should now apply to it */
+
+#scroll {
+    width: 100%; /* Make it fill the width of its flex parent */
+    max-width: 80%; /* Actual displayed width, matching sortbar */
+    min-width: 38rem; /* Keep this if you want a minimum overall width for content */
+    background-color: var(--secondary-blue);
+    border: solid 0.25rem var(--primary-dark);
+    color: var(--background-light);
+    padding: 1rem 2rem;
+    border-radius: 0.75rem;
+    box-sizing: border-box;
+    margin: 0; /* Managed by parent flex gap */
+}
+
+#scroll .post-holder {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 0;
+    margin: 0;
+}
+
+/* --- Individual Blog Post Summary Card --- */
+.blog-post-box {
+    background-color: var(--background-light); /* Light cream background */
+    color: var(--primary-dark); /* Dark blue text */
+    padding: 1.25rem;
+    border-radius: 1.5rem;
+    width: 710px; /* Be cautious with fixed widths for responsiveness */
+    max-width: 100%; /* Ensure it doesn't overflow on small screens */
+    border: 1px solid var(--tertiary-light-blue); /* Light blue border */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    margin: 0 auto; /* Center individual posts within #scroll */
+}
+
+.blog-post-box h2 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+    color: var(--primary-dark);
+}
+
+.blog-post-box h2 a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.3s ease-out;
+}
+
+.blog-post-box h2 a:hover {
+    color: var(--secondary-blue);
+}
+
+.blog-post-box .post-date {
+    font-size: 0.9rem;
+    color: var(--secondary-blue);
+    margin-bottom: 1rem;
+}
+
+.blog-post-box p {
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.post-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    align-items: center;
+}
+
+.post-tags-container span[style*="font-weight: bold;"] {
+    color: var(--primary-dark);
+    margin-right: 0.2rem;
+}
+
+.tag-item {
+    background-color: var(--secondary-blue);
+    color: var(--background-light);
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: 1px solid var(--secondary-blue);
+    white-space: nowrap; /* Prevent tag text from breaking */
+}
+
+.tag-item:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+/* --- HTMX Loading Indicators and Transitions --- */
+.htmx-indicator {
+    display: none;
+    font-weight: bold;
+    color: var(--accent-red);
+}
+
+.htmx-request .htmx-indicator {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.htmx-swapping {
+    opacity: 0;
+    transition: opacity 200ms ease-out;
+}
+
+.htmx-added {
+    opacity: 0;
+}
+
+.htmx-added.htmx-swapping {
+    opacity: 1;
+    transition: opacity 400ms ease-in;
+}
+
+/* --- Iframe Styling --- */
 iframe {
-    display: block; /* Treat iframes as block-level elements */
-    margin: 0 auto; /* Center horizontally by setting auto margins */
+    display: block;
+    margin: 1rem auto;
+    width: 100%;
+    max-width: 800px;
+    height: 450px;
+    border: 1px solid var(--tertiary-light-blue);
+    border-radius: 0.75rem;
+    box-sizing: border-box;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+    #scroll, #sortbar {
+        max-width: 95%; /* Use more width on smaller screens */
+        min-width: unset; /* Allow shrinking below 38rem */
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    #blog-content-container {
+        padding: 0.5rem;
+    }
+
+    .navbar-element a {
+        padding: 0.5rem 0.75rem; /* Smaller padding for navbar elements */
+    }
+
+    .navbar {
+        padding: 0.5rem;
+        justify-content: center; /* Center navbar elements if they wrap */
+    }
+
+    .navsection {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    #sortbar-elements {
+        flex-direction: column; /* Stack sortbar elements vertically */
+        align-items: stretch; /* Make them fill width */
+        gap: 0.75rem;
+    }
+
+    #searchbar-controls {
+        flex-direction: column; /* Stack search input and button */
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    #sortbar-elements input[type="text"],
+    #sortbar-elements button,
+    #sortbar-elements select {
+        width: 100%; /* Make them full width of parent */
+        min-width: unset; /* Allow shrinking */
+    }
+
+    .blog-post-box {
+        width: 100%; /* Make post cards fluid */
+        border-radius: 1rem;
+        padding: 1rem;
+    }
+
+    .blog-post-box h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        font-size: 0.9rem;
+    }
+
+    .navbar-element a {
+        font-size: 0.9rem;
+    }
+
+    #scroll, #sortbar {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .blog-post-box {
+        padding: 0.75rem;
+    }
+
+    .blog-post-box h2 {
+        font-size: 1.3rem;
+    }
+
+    .submit-btn, .submit-button {
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+    }
 }
